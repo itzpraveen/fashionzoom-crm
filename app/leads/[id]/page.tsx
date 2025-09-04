@@ -1,10 +1,13 @@
 import { createServerSupabase } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
 import { DispositionSheet } from '@/components/DispositionSheet'
 import { FollowUpForm } from '@/components/FollowUpForm'
 import { BadgeScore } from '@/components/BadgeScore'
 
 export default async function LeadDetail({ params }: { params: { id: string } }) {
   const supabase = createServerSupabase()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
   const { data: lead } = await supabase.from('leads').select('*').eq('id', params.id).single()
   const { data: acts } = await supabase.from('activities').select('*').eq('lead_id', params.id).order('created_at', { ascending: false }).limit(50)
   const { data: fls } = await supabase.from('followups').select('*').eq('lead_id', params.id).order('due_at', { ascending: true }).limit(50)
@@ -61,4 +64,3 @@ export default async function LeadDetail({ params }: { params: { id: string } })
     </div>
   )
 }
-

@@ -3,15 +3,14 @@ import { EmptyState } from '@/components/EmptyState'
 import { LeadCard } from '@/components/LeadCard'
 import { Skeleton } from '@/components/Skeleton'
 import { AddLeadButton } from '@/components/AddLeadButton'
+import { redirect } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
 
 export default async function LeadsPage() {
   const supabase = createServerSupabase()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    return <EmptyState title="You are not signed in" hint="Login to view your queue." actionHref="/login" actionLabel="Login" />
-  }
+  if (!user) redirect('/login')
   const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single()
 
   const now = new Date().toISOString()

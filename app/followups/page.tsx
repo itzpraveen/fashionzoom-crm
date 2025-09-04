@@ -1,10 +1,10 @@
 import { createServerSupabase } from '@/lib/supabase/server'
-import { EmptyState } from '@/components/EmptyState'
+import { redirect } from 'next/navigation'
 
 export default async function FollowupsPage() {
   const supabase = createServerSupabase()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return <EmptyState title="Login to view follow-ups" actionHref="/login" actionLabel="Login" />
+  if (!user) redirect('/login')
   const { data } = await supabase.from('followups').select('*, leads(full_name)').order('due_at', { ascending: true }).limit(100)
   return (
     <div className="space-y-3">
@@ -24,4 +24,3 @@ export default async function FollowupsPage() {
     </div>
   )
 }
-

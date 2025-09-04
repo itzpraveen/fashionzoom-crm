@@ -1,4 +1,5 @@
 import { createServerSupabase } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
 import { createTeam, assignUserToTeam } from '@/actions/teams'
 
 export const dynamic = 'force-dynamic'
@@ -6,7 +7,7 @@ export const dynamic = 'force-dynamic'
 export default async function TeamsSettingsPage() {
   const supabase = createServerSupabase()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return <div className="text-sm">You must be logged in.</div>
+  if (!user) redirect('/login')
   const { data: me } = await supabase.from('profiles').select('role').eq('id', user.id).single()
   if ((me?.role ?? 'TELECALLER') !== 'ADMIN') return <div className="text-sm">403 — Admins only.</div>
 
@@ -96,4 +97,3 @@ export default async function TeamsSettingsPage() {
     </div>
   )
 }
-

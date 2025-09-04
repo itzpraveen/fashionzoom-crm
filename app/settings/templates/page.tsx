@@ -1,7 +1,10 @@
 import { createServerSupabase } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
 
 export default async function TemplatesPage() {
   const supabase = createServerSupabase()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
   const { data: templates } = await supabase.from('templates').select('*').order('created_at', { ascending: false }).limit(50)
   return (
     <div className="space-y-3">
@@ -19,4 +22,3 @@ export default async function TemplatesPage() {
     </div>
   )
 }
-

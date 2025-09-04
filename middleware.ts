@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-// Routes that require authentication
-const PROTECTED_PREFIXES = ['/dashboard', '/leads', '/followups', '/import', '/settings']
+// Public paths always allowed; we handle auth inside pages to avoid loops
 const PUBLIC_PATHS = ['/onboarding', '/auth/callback', '/manifest.json', '/sw.js']
 
 export function middleware(req: NextRequest) {
@@ -24,17 +23,6 @@ export function middleware(req: NextRequest) {
     pathname.startsWith('/icons') ||
     PUBLIC_PATHS.some(p => pathname.startsWith(p))
   ) return NextResponse.next()
-
-  // If hitting protected route while not authenticated → go to login
-  if (PROTECTED_PREFIXES.some(p => pathname.startsWith(p)) && !hasAuth) {
-    const url = req.nextUrl.clone()
-    url.pathname = '/login'
-    // Keep the URL clean for the common entry points
-    if (pathname !== '/' && pathname !== '/dashboard') {
-      url.searchParams.set('redirect', pathname)
-    }
-    return NextResponse.redirect(url)
-  }
 
   return NextResponse.next()
 }
