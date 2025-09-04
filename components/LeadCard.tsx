@@ -56,7 +56,7 @@ export function LeadCard({ lead, role }: { lead: Lead; role?: 'TELECALLER'|'MANA
         </a>
         <button
           onClick={()=>router.push(`/leads/${lead.id}`)}
-          className="touch-target rounded bg-primary text-black px-3 py-2 text-sm flex items-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
+          className="touch-target rounded bg-primary text-white px-3 py-2 text-sm flex items-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
           aria-label="Open lead"
         >
           <ExternalLink size={16} aria-hidden="true" />

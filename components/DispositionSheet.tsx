@@ -35,7 +35,7 @@ export function DispositionSheet({ leadId, onDone }: { leadId: string; onDone?: 
             <div className="text-sm mb-1">Outcome</div>
             <div className="flex flex-wrap gap-2">
               {outcomes.map(o => (
-                <button key={o} onClick={()=>setOutcome(o)} className={`px-2 py-1 rounded text-sm border ${o===outcome? 'bg-primary text-black border-transparent':'border-white/10'}`}>{o.replace('_',' ')}</button>
+                <button key={o} onClick={()=>setOutcome(o)} className={`px-2 py-1 rounded text-sm border ${o===outcome? 'bg-primary text-white border-transparent':'border-white/10'}`}>{o.replace('_',' ')}</button>
               ))}
             </div>
           </div>
@@ -69,4 +69,3 @@ export function DispositionSheet({ leadId, onDone }: { leadId: string; onDone?: 
     </div>
   )
 }
-

@@ -45,7 +45,7 @@ export default function LoginPage() {
           onChange={(e) => setEmail(e.target.value)}
           aria-label="Email address"
         />
-        <button type="submit" className="touch-target w-full rounded bg-primary text-black font-medium px-4 py-2">Send link</button>
+        <button type="submit" className="touch-target w-full rounded bg-primary text-white font-medium px-4 py-2">Send link</button>
         {error && <p role="alert" className="text-danger text-sm">{error}</p>}
         {sent && <p className="text-success text-sm">Check your inbox for the magic link.</p>}
       </form>

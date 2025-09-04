@@ -65,7 +65,7 @@ export default function OnboardingPage() {
           <label className="block text-sm">Team name (optional)</label>
           <input className="w-full rounded bg-white/5 border border-white/10 px-3 py-2" value={teamName} onChange={(e)=>setTeamName(e.target.value)} />
         </div>
-        <button className="touch-target rounded bg-primary text-black font-medium px-4 py-2">Continue</button>
+        <button className="touch-target rounded bg-primary text-white font-medium px-4 py-2">Continue</button>
         {done && <p className="text-success text-sm">Saved. Go to Leads.</p>}
       </form>
     </div>

@@ -128,7 +128,7 @@ export function AddLeadModal({ open, onClose }: Props) {
           {error && <p role="alert" className="text-danger text-sm">{error}</p>}
           {success && <p className="text-success text-sm">{success}</p>}
           <div className="flex gap-2">
-            <button disabled={pending} className="rounded bg-primary text-black px-4 py-2">Save</button>
+            <button disabled={pending} className="rounded bg-primary text-white px-4 py-2">Save</button>
             <button type="button" onClick={onClose} className="rounded bg-white/10 px-3 py-2">Cancel</button>
           </div>
         </form>
@@ -136,4 +136,3 @@ export function AddLeadModal({ open, onClose }: Props) {
     </div>
   )
 }
-

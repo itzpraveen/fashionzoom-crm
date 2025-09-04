@@ -10,10 +10,9 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
         <p className="text-xs text-muted mb-3">Error ID: <code>{error.digest}</code></p>
       )}
       <div className="flex gap-2">
-        <button onClick={reset} className="rounded bg-primary text-black px-3 py-2 text-sm">Reload</button>
+        <button onClick={reset} className="rounded bg-primary text-white px-3 py-2 text-sm">Reload</button>
         <Link href="/login" className="rounded bg-white/10 px-3 py-2 text-sm">Login</Link>
       </div>
     </div>
   )
 }
-

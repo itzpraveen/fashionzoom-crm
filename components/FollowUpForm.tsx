@@ -26,8 +26,7 @@ export function FollowUpForm({ leadId, onSaved }: { leadId: string; onSaved?: ()
         </select>
       </div>
       <textarea placeholder="Remark" className="w-full rounded bg-white/5 border border-white/10 p-2" rows={2} value={remark} onChange={e=>setRemark(e.target.value)} />
-      <button disabled={saving} className="rounded bg-primary text-black px-3 py-2">Add Follow-up</button>
+      <button disabled={saving} className="rounded bg-primary text-white px-3 py-2">Add Follow-up</button>
     </form>
   )
 }
-
