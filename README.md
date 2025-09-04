@@ -1,0 +1,58 @@
+# FashionZoom CRM
+
+FashionZoom CRM is a web-only PWA for lead capture, calling & WhatsApp follow-ups, and manager oversight. Built with Next.js 14 (App Router, TS), Supabase, Tailwind.
+
+## Features
+- Telecaller My Queue with 2-tap Call/WA and quick Disposition Sheet
+- Lead Detail with timeline, follow-ups, sticky action bar
+- Manager dashboard with realtime tiles
+- Import wizard (CSV) with normalization & dedupe by phone
+- PWA with offline shell and IndexedDB offline queue
+- Zod validation and Next.js Server Actions
+- Supabase Realtime on activities/followups; RLS policies for scoping
+
+## Setup
+
+### Env vars
+Create a `.env.local` in project root with:
+
+```
+NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+```
+
+### Install & run
+
+```
+pnpm install
+pnpm dev
+```
+
+Open http://localhost:3000
+
+### Database
+Run SQL migrations in Supabase:
+- supabase/sql/001_schema.sql
+- supabase/sql/010_seed.sql (optional seed of ~150 Kerala leads)
+
+### Edge Function (lead ingestion)
+Serve locally:
+
+```
+supabase functions serve ingest-lead --no-verify-jwt
+```
+
+Deploy via Supabase CLI. Function path: `supabase/functions/ingest-lead/index.ts`
+
+## Tests
+
+- Unit (Vitest): `pnpm test`
+- E2E (Playwright): `pnpm e2e`
+
+## Notes
+
+- Phone masking is applied in list views for non-managers. Full phone appears on detail if role is MANAGER/ADMIN.
+- Simple in-memory rate limiting guards server actions.
+- Service worker caches app shell; basic offline support included.
+
