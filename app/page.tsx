@@ -12,5 +12,5 @@ export default async function Page() {
   const { data: profile } = await supabase.from('profiles').select('id').eq('id', user.id).maybeSingle()
   if (!profile) redirect('/onboarding')
   // Default landing after login
-  redirect('/leads')
+  redirect('/dashboard')
 }
