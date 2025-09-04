@@ -15,10 +15,10 @@ export function createServerSupabase() {
           cookieStore.set({ name, value, ...options })
         },
         remove(name: string, options: CookieOptions) {
-          cookieStore.set({ name, value: '', ...options })
+          // expire cookie immediately to ensure removal across browsers
+          cookieStore.set({ name, value: '', ...options, maxAge: 0 })
         },
       }
     }
   )
 }
-

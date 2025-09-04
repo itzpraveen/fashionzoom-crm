@@ -183,6 +183,7 @@ alter table public.followups  enable row level security;
 alter table public.templates  enable row level security;
 alter table public.assignment_rules enable row level security;
 alter table public.audit_log enable row level security;
+alter table public.teams enable row level security;
 
 create or replace function public.is_admin() returns boolean
 language sql stable as $$
@@ -274,3 +275,11 @@ with check ( public.is_admin() or public.same_team(team_id) );
 create policy "audit_read_ma" on public.audit_log
 for select using ( public.is_admin() or public.is_manager() );
 
+-- teams (RLS)
+create policy "teams_select_scope" on public.teams
+for select using ( public.is_admin() or public.same_team(id) );
+create policy "teams_insert_auth" on public.teams
+for insert with check ( auth.uid() is not null );
+create policy "teams_update_scope" on public.teams
+for update using ( public.is_admin() or public.same_team(id) )
+with check ( public.is_admin() or public.same_team(id) );

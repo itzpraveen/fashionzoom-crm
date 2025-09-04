@@ -1,6 +1,7 @@
 import './globals.css'
 import type { ReactNode } from 'react'
 import Link from 'next/link'
+import SWRegister from './sw-register'
 
 export const metadata = {
   title: 'FashionZoom CRM',
@@ -28,8 +29,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <main className="mx-auto max-w-6xl px-4 py-4">
           {children}
         </main>
+        {/* Register service worker across the app */}
+        <SWRegister />
       </body>
     </html>
   )
 }
-

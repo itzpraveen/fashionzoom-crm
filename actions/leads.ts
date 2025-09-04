@@ -55,8 +55,7 @@ export const saveDisposition = async (input: {
       remark: data.note || null
     })
   }
-  // Update lead summary
-  await supabase.rpc('bump_lead_activity')
+  // Update lead summary (activity trigger already bumps last_activity_at)
   await supabase.from('leads').update({
     status: data.outcome === 'CONNECTED' ? 'CONTACTED' : 'FOLLOW_UP',
   }).eq('id', data.leadId)
@@ -78,14 +77,31 @@ export const createFollowup = async (input: { leadId: string; dueAt: string; pri
   await supabase.from('followups').insert({ lead_id: data.leadId, user_id: user.id, due_at: data.dueAt, priority: data.priority, remark: data.remark || null })
 }
 
-export const updateLead = async (input: { id: string; patch: any }) => {
-  const schema = z.object({ id: z.string().uuid(), patch: z.record(z.any()) })
+export const updateLead = async (input: { id: string; patch: Record<string, unknown> }) => {
+  const schema = z.object({ id: z.string().uuid(), patch: z.record(z.unknown()) })
   const { id, patch } = schema.parse(input)
   const supabase = createServerSupabase()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
   limit(user.id)
-  await supabase.from('leads').update(patch).eq('id', id)
+
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  const role = (profile?.role ?? 'TELECALLER') as 'TELECALLER'|'MANAGER'|'ADMIN'
+
+  const baseAllowed = new Set([
+    'full_name', 'city', 'address', 'pincode', 'status', 'product_interest', 'tags', 'notes', 'consent', 'next_follow_up_at', 'email', 'alt_phone'
+  ])
+  const elevatedAllowed = new Set([
+    'owner_id', 'team_id', 'score', 'duplicate_of_lead_id', 'is_deleted'
+  ])
+
+  const allowed = new Set([...baseAllowed, ...(role === 'ADMIN' || role === 'MANAGER' ? elevatedAllowed : [])])
+  const filtered: Record<string, unknown> = {}
+  for (const [k, v] of Object.entries(patch)) {
+    if (allowed.has(k)) filtered[k] = v
+  }
+  if (Object.keys(filtered).length === 0) return
+  await supabase.from('leads').update(filtered).eq('id', id)
 }
 
 export const importLeads = async (rows: Array<{ full_name: string; primary_phone: string; city?: string; source?: string }>) => {
@@ -100,21 +116,27 @@ export const importLeads = async (rows: Array<{ full_name: string; primary_phone
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
   limit(user.id, 10000, 200) // higher window for imports
+
+  // batch upsert by normalized phone; ignore duplicates for speed
+  const chunk = <T,>(arr: T[], size: number) => arr.reduce<T[][]>((acc, _, i) => (i % size ? acc : [...acc, arr.slice(i, i + size)]), [])
   let inserted = 0
-  let duplicates = 0
-  for (const r of data) {
-    const { error } = await supabase.from('leads').insert({
+  const chunks = chunk(data, 500)
+  for (const c of chunks) {
+    const payload = c.map(r => ({
       full_name: r.full_name,
       primary_phone: r.primary_phone,
       city: r.city || null,
       source: (r.source as any) || 'Other',
       owner_id: user.id
-    })
-    if (error) {
-      if (error.message.includes('duplicate')) duplicates++
-      else throw error
-    } else inserted++
+    }))
+    const { data: ins, error } = await supabase
+      .from('leads')
+      .upsert(payload, { onConflict: 'primary_phone_norm', ignoreDuplicates: true })
+      .select('id')
+    if (error) throw error
+    inserted += (ins?.length || 0)
   }
+  const duplicates = data.length - inserted
   return { inserted, duplicates }
 }
 
