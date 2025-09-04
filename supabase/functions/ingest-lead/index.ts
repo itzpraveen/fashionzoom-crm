@@ -6,13 +6,14 @@ serve(async (req) => {
   const body = await req.json().catch(() => ({})) as any
   const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
   const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-  const resp = await fetch(`${SUPABASE_URL}/rest/v1/leads`, {
+  // Use upsert on normalized phone to avoid hard errors for duplicates
+  const resp = await fetch(`${SUPABASE_URL}/rest/v1/leads?on_conflict=primary_phone_norm`, {
     method: 'POST',
     headers: {
       'apikey': SERVICE_ROLE_KEY,
       'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
       'Content-Type': 'application/json',
-      'Prefer': 'return=representation'
+      'Prefer': 'resolution=merge-duplicates,return=representation'
     },
     body: JSON.stringify({
       full_name: body.name || body.full_name || null,
@@ -25,4 +26,3 @@ serve(async (req) => {
   const data = await resp.json()
   return new Response(JSON.stringify({ ok: true, data }), { headers: { 'Content-Type': 'application/json' } })
 })
-
