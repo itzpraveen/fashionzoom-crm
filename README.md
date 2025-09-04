@@ -66,8 +66,13 @@ Note: E2E tests expect the dev server running and a signed-in session or seeded 
 
 - Phone masking is applied in list views for non-managers. Full phone appears on detail if role is MANAGER/ADMIN.
 - Simple in-memory rate limiting guards server actions.
-- Service worker caches app shell; basic offline support included.
-- Manifest icons use SVG to avoid missing PNG assets; replace with your brand icons anytime under `public/icons/`.
+- PWA is disabled during active development to avoid caching issues; a small unregistration helper runs in layout. You can re‑enable later.
+- Manifest icons use SVG; replace with your brand icons any time under `public/icons/`.
+
+## Housekeeping / Cleanup
+- Middleware auth gating removed to avoid redirect loops; routes enforce auth server‑side.
+- Debug routes and unused utilities removed (`/auth/status`, offline queue, Toast component, legacy SW register).
+- Login is a server component that redirects if already authenticated; the client form is in `components/LoginForm.tsx`.
 
 ## Auth Setup (Supabase)
 

@@ -1,5 +1,6 @@
 import { createServerSupabase } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { EmptyState } from '@/components/EmptyState'
 
 export default async function FollowupsPage() {
   const supabase = createServerSupabase()
