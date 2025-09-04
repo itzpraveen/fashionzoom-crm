@@ -67,3 +67,20 @@ Note: E2E tests expect the dev server running and a signed-in session or seeded 
 - Simple in-memory rate limiting guards server actions.
 - Service worker caches app shell; basic offline support included.
 - Manifest icons use SVG to avoid missing PNG assets; replace with your brand icons anytime under `public/icons/`.
+
+## Auth Setup (Supabase)
+
+- Site URL: set to your production domain (e.g., `https://fzcrm.vercel.app`).
+- Additional Redirect URLs: add the following for magic links and local dev:
+  - `http://localhost:3000`
+  - `http://localhost:3000/onboarding`
+  - `https://fzcrm.vercel.app`
+  - `https://fzcrm.vercel.app/onboarding`
+- Email OTP: enable Magic Links. Optionally customize the email template; links should open in the same tab.
+- Cookies: leave defaults. We check for `sb-access-token` in middleware for routing.
+
+### Login flow
+- `/login` sends a magic link with `emailRedirectTo` set to `/onboarding`.
+- `/onboarding` completes profile (creates team optionally) and redirects to `/dashboard`.
+- Authenticated access is enforced with `middleware.ts` on `/dashboard`, `/leads`, `/followups`, `/import`, `/settings`.
+- Hitting `/login` when already authenticated will redirect to `/dashboard`.

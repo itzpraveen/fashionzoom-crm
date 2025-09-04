@@ -1,9 +1,11 @@
 "use client"
 import { useEffect, useState } from 'react'
 import { createBrowserClient } from '@/lib/supabase/client'
+import { useRouter } from 'next/navigation'
 
 export default function OnboardingPage() {
   const supabase = createBrowserClient()
+  const router = useRouter()
   const [fullName, setFullName] = useState('')
   const [role, setRole] = useState<'TELECALLER'|'MANAGER'|'ADMIN'>('TELECALLER')
   const [teamName, setTeamName] = useState('')
@@ -12,6 +14,18 @@ export default function OnboardingPage() {
   useEffect(() => {
     // show A2HS prompt hint after login
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{})
+  }, [])
+
+  useEffect(() => {
+    // If profile already exists, skip onboarding
+    const run = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const { data: profile } = await supabase.from('profiles').select('id').eq('id', user.id).maybeSingle()
+      if (profile) router.replace('/dashboard')
+    }
+    run()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const submit = async (e: React.FormEvent) => {
@@ -27,6 +41,7 @@ export default function OnboardingPage() {
     }
     await supabase.from('profiles').upsert({ id: user.id, full_name: fullName, role, team_id: teamId })
     setDone(true)
+    router.replace('/dashboard')
   }
 
   return (
@@ -56,4 +71,3 @@ export default function OnboardingPage() {
     </div>
   )
 }
-

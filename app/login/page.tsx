@@ -1,11 +1,25 @@
 "use client"
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createBrowserClient } from '@/lib/supabase/client'
+import { useRouter } from 'next/navigation'
 
 export default function LoginPage() {
+  const router = useRouter()
   const [email, setEmail] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [sent, setSent] = useState(false)
+  const [loading, setLoading] = useState(true)
+
+  // If already logged in, redirect to dashboard
+  useEffect(() => {
+    const run = async () => {
+      const supabase = createBrowserClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) router.replace('/dashboard')
+      setLoading(false)
+    }
+    run()
+  }, [router])
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -16,6 +30,7 @@ export default function LoginPage() {
     else setSent(true)
   }
 
+  if (loading) return null
   return (
     <div className="max-w-md mx-auto">
       <h1 className="text-2xl font-semibold mb-4">Login</h1>
@@ -38,4 +53,3 @@ export default function LoginPage() {
     </div>
   )
 }
-
