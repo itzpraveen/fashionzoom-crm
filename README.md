@@ -43,7 +43,8 @@ pnpm e2e:install
 Run SQL migrations in Supabase:
 - supabase/sql/001_schema.sql
 - supabase/sql/010_seed.sql (optional seed of ~150 Kerala leads)
- - supabase/sql/020_relax_leads_insert_policy.sql (allow owners without team to create leads)
+- supabase/sql/020_relax_leads_insert_policy.sql (allow owners without team to create leads)
+ - supabase/sql/030_admin_policies.sql (admin RLS policies for Teams/Templates/Assignment Rules/Audit Log)
 
 ### Edge Function (lead ingestion)
 Serve locally:
