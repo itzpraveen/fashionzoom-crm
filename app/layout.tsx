@@ -9,12 +9,16 @@ export const metadata = {
   title: 'FashionZoom CRM',
   description: 'Lead capture, calling & WhatsApp follow-ups',
   manifest: '/manifest.json',
-  themeColor: '#0b0b0c',
   icons: {
     icon: '/icons/icon-192.svg',
     shortcut: '/icons/icon-192.svg',
     apple: '/icons/icon-192.svg'
   }
+}
+
+export const viewport = {
+  themeColor: '#0b0b0c',
+  colorScheme: 'light dark'
 }
 
 const themeInitScript = `(() => { try { const t = localStorage.getItem('fzcrm-theme'); if (t==='light'||t==='dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {} })();`
