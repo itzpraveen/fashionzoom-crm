@@ -5,7 +5,8 @@ import Link from 'next/link'
 import SWUnregister from './sw-unregister'
 import FooterNav from '@/components/FooterNav'
 import { ThemeToggle } from '@/components/ThemeToggle'
-import { createServerSupabase } from '@/lib/supabase/server'
+import AuthNav from '@/components/AuthNav'
+// Keep layout static for fast navigations; do not fetch auth here
 
 export const metadata = {
   title: 'FashionZoom CRM',
@@ -29,8 +30,6 @@ export const viewport = {
 const themeInitScript = `(() => { try { const t = localStorage.getItem('fzcrm-theme'); if (t==='light'||t==='dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {} })();`
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
-  const supabase = createServerSupabase()
-  const { data: { user } } = await supabase.auth.getUser()
   let role: 'TELECALLER'|'MANAGER'|'ADMIN'|null = null
   if (user) {
     const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle()
@@ -55,19 +54,11 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
               {role === 'ADMIN' && (
                 <Link className="hover:underline" href="/settings/teams">Teams</Link>
               )}
-              {user ? (
-                <Link className="hover:underline" href="/logout">Logout</Link>
-              ) : (
-                <Link className="hover:underline" href="/login">Login</Link>
-              )}
+              <AuthNav />
               <ThemeToggle />
             </div>
             <div className="ml-auto sm:hidden">
-              {user ? (
-                <Link className="rounded bg-white/10 px-2 py-1 mr-2" href="/logout">Logout</Link>
-              ) : (
-                <Link className="rounded bg-white/10 px-2 py-1 mr-2" href="/login">Login</Link>
-              )}
+              <AuthNav />
               <ThemeToggle />
             </div>
           </nav>
