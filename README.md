@@ -84,3 +84,9 @@ Note: E2E tests expect the dev server running and a signed-in session or seeded 
 - `/onboarding` completes profile (creates team optionally) and redirects to `/dashboard`.
 - Authenticated access is enforced with `middleware.ts` on `/dashboard`, `/leads`, `/followups`, `/import`, `/settings`.
 - Hitting `/login` when already authenticated will redirect to `/dashboard`.
+
+## Theme (Light/Dark)
+- Theme variables live in `app/globals.css` and support light, dark, and system.
+- Users can toggle with the selector in the header (component: `components/ThemeToggle.tsx`).
+- The selection persists in `localStorage` (`fzcrm-theme`).
+- The `<meta name="theme-color">` is set via `viewport` for both schemes.
