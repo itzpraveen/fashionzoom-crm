@@ -2,7 +2,40 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Light theme defaults */
 :root {
+  --bg: #ffffff;
+  --fg: #0b1220;
+  --muted: #5b6b83;
+  --primary: #335cff;
+  --danger: #dc2626;
+  --warning: #d97706;
+  --success: #059669;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0b0b0c;
+    --fg: #f5f7fa;
+    --muted: #9aa3b2;
+    --primary: #5b8def;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --success: #10b981;
+  }
+}
+
+/* Explicit theme override */
+[data-theme="light"] {
+  --bg: #ffffff;
+  --fg: #0b1220;
+  --muted: #5b6b83;
+  --primary: #335cff;
+  --danger: #dc2626;
+  --warning: #d97706;
+  --success: #059669;
+}
+[data-theme="dark"] {
   --bg: #0b0b0c;
   --fg: #f5f7fa;
   --muted: #9aa3b2;
@@ -20,6 +53,12 @@ body {
   color: var(--fg);
   background: var(--bg);
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+/* Modern background flourish */
+.bg-grid {
+  background-image: radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--muted) 20%, transparent) 1px, transparent 0);
+  background-size: 24px 24px;
 }
 /* Improve focus visibility for accessibility */
 :focus-visible {

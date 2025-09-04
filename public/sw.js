@@ -1,5 +1,5 @@
 // Cache only static assets. Avoid caching authenticated HTML routes.
-const CACHE_NAME = 'fzcrm-static-v2'
+const CACHE_NAME = 'fzcrm-static-v3'
 
 self.addEventListener('install', (event) => {
   // Take over immediately on update to reduce old SWs lingering
@@ -7,7 +7,7 @@ self.addEventListener('install', (event) => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE_NAME)
     // Precache only truly static assets
-    await cache.addAll(['/manifest.json'])
+    await cache.addAll(['/manifest.json', '/icons/icon-192.svg', '/icons/icon-512.svg'])
   })())
 })
 

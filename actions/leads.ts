@@ -186,8 +186,14 @@ export const createLead = async (input: {
 
   const { error } = await supabase.from('leads').insert(payload)
   if (error) {
-    if (error.message.includes('duplicate')) throw new Error('A lead with this phone already exists.')
-    throw error
+    const msg = (error.message || '').toLowerCase()
+    if (msg.includes('duplicate') || msg.includes('unique')) {
+      throw new Error('A lead with this phone already exists.')
+    }
+    if (msg.includes('row level security') || msg.includes('rls') || error.code === '42501') {
+      throw new Error('Permission denied. Ensure your profile exists and is assigned to a team.')
+    }
+    throw new Error('Failed to create lead. Please try again.')
   }
   return { ok: true }
 }
