@@ -3,19 +3,12 @@ import type { NextRequest } from 'next/server'
 
 // Routes that require authentication
 const PROTECTED_PREFIXES = ['/dashboard', '/leads', '/followups', '/import', '/settings']
-const PUBLIC_PATHS = ['/login', '/onboarding', '/auth/callback', '/manifest.json', '/sw.js']
+const PUBLIC_PATHS = ['/onboarding', '/auth/callback', '/manifest.json', '/sw.js']
 
 export function middleware(req: NextRequest) {
   // Skip auth gating during E2E runs
   if (process.env.E2E === '1') return NextResponse.next()
   const { pathname } = req.nextUrl
-  // Skip static files and Next internals
-  if (
-    pathname.startsWith('/_next') ||
-    pathname.startsWith('/icons') ||
-    PUBLIC_PATHS.some(p => pathname.startsWith(p))
-  ) return NextResponse.next()
-
   const hasAuth = Boolean(req.cookies.get('sb-access-token')?.value)
 
   // If hitting /login while authenticated → go to dashboard
@@ -24,6 +17,13 @@ export function middleware(req: NextRequest) {
     url.pathname = '/dashboard'
     return NextResponse.redirect(url)
   }
+
+  // Skip static files and Next internals (but not /login case handled above)
+  if (
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/icons') ||
+    PUBLIC_PATHS.some(p => pathname.startsWith(p))
+  ) return NextResponse.next()
 
   // If hitting protected route while not authenticated → go to login
   if (PROTECTED_PREFIXES.some(p => pathname.startsWith(p)) && !hasAuth) {
