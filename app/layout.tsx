@@ -4,6 +4,7 @@ import Link from 'next/link'
 import SWRegister from './sw-register'
 import FooterNav from '@/components/FooterNav'
 import { ThemeToggle } from '@/components/ThemeToggle'
+import { createServerSupabase } from '@/lib/supabase/server'
 
 export const metadata = {
   title: 'FashionZoom CRM',
@@ -26,7 +27,9 @@ export const viewport = {
 
 const themeInitScript = `(() => { try { const t = localStorage.getItem('fzcrm-theme'); if (t==='light'||t==='dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {} })();`
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const supabase = createServerSupabase()
+  const { data: { user } } = await supabase.auth.getUser()
   return (
     <html lang="en">
       <body className="bg-grid">
@@ -43,11 +46,20 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               <Link className="hover:underline" href="/followups">Follow-ups</Link>
               <Link className="hover:underline" href="/import">Import</Link>
               <Link className="hover:underline" href="/settings/templates">Settings</Link>
-              <Link className="hover:underline" href="/login">Login</Link>
+              <Link className="hover:underline" href="/settings/teams">Teams</Link>
+              {user ? (
+                <Link className="hover:underline" href="/logout">Logout</Link>
+              ) : (
+                <Link className="hover:underline" href="/login">Login</Link>
+              )}
               <ThemeToggle />
             </div>
             <div className="ml-auto sm:hidden">
-              <Link className="rounded bg-white/10 px-2 py-1 mr-2" href="/login">Login</Link>
+              {user ? (
+                <Link className="rounded bg-white/10 px-2 py-1 mr-2" href="/logout">Logout</Link>
+              ) : (
+                <Link className="rounded bg-white/10 px-2 py-1 mr-2" href="/login">Login</Link>
+              )}
               <ThemeToggle />
             </div>
           </nav>
