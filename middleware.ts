@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server'
 
 // Routes that require authentication
 const PROTECTED_PREFIXES = ['/dashboard', '/leads', '/followups', '/import', '/settings']
-const PUBLIC_PATHS = ['/login', '/onboarding', '/manifest.json', '/sw.js']
+const PUBLIC_PATHS = ['/login', '/onboarding', '/auth/callback', '/manifest.json', '/sw.js']
 
 export function middleware(req: NextRequest) {
   // Skip auth gating during E2E runs

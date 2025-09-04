@@ -28,7 +28,7 @@ export default function LoginPage() {
     setError(null)
     const supabase = createBrowserClient()
     const redirect = params.get('redirect') || '/dashboard'
-    const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: `${location.origin}/onboarding?redirect=${encodeURIComponent(redirect)}` } })
+    const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: `${location.origin}/auth/callback?redirect=${encodeURIComponent(redirect)}` } })
     if (error) setError(error.message)
     else setSent(true)
   }
