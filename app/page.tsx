@@ -14,3 +14,4 @@ export default async function Page() {
   // Default landing after login
   redirect('/dashboard')
 }
+export const dynamic = 'force-dynamic'
