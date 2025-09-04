@@ -10,6 +10,10 @@ export async function GET(request: Request) {
     const supabase = createServerSupabase()
     // This will set the auth cookies via our server client cookie adapter
     await supabase.auth.exchangeCodeForSession(code)
+  } else {
+    const url = new URL('/login', request.url)
+    url.searchParams.set('error', 'Missing or invalid login code. Please request a new magic link.')
+    return NextResponse.redirect(url)
   }
 
   // After setting cookies, continue to onboarding which bootstraps profile (or skips if present)
@@ -17,4 +21,3 @@ export async function GET(request: Request) {
   url.searchParams.set('redirect', redirect)
   return NextResponse.redirect(url)
 }
-

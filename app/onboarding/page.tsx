@@ -12,6 +12,7 @@ export default function OnboardingPage() {
   const [role, setRole] = useState<'TELECALLER'|'MANAGER'|'ADMIN'>('TELECALLER')
   const [done, setDone] = useState(false)
   const [pending, start] = useTransition()
+  const [authError, setAuthError] = useState<string | null>(null)
 
   useEffect(() => {
     // show A2HS prompt hint after login
@@ -33,6 +34,20 @@ export default function OnboardingPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // Be resilient to being opened directly with code or with an error hash
+  useEffect(() => {
+    const code = new URLSearchParams(window.location.search).get('code')
+    const hash = new URLSearchParams(window.location.hash.slice(1))
+    if (hash.get('error')) {
+      setAuthError(hash.get('error_description') || 'Invalid or expired link. Please request a new magic link.')
+    }
+    if (code) {
+      supabase.auth.exchangeCodeForSession(code).catch(() => {
+        setAuthError('Could not complete sign-in. Please request a new magic link.')
+      })
+    }
+  }, [supabase])
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
     start(async () => {
@@ -47,6 +62,9 @@ export default function OnboardingPage() {
     <div className="max-w-lg mx-auto">
       <h1 className="text-2xl font-semibold mb-2">Welcome</h1>
       <p className="text-sm text-muted mb-4">Complete your profile to continue.</p>
+      {authError && (
+        <div className="mb-3 text-sm text-danger">{authError} <button className="underline" onClick={()=>router.replace('/login')}>Go to login</button></div>
+      )}
       <form onSubmit={submit} className="space-y-3">
         <div>
           <label className="block text-sm">Full name</label>

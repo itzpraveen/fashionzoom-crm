@@ -18,10 +18,13 @@ export default function LoginPage() {
       const supabase = createBrowserClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (user) router.replace('/dashboard')
+      // surface callback/onboarding errors if present
+      const urlError = params.get('error') || params.get('error_description')
+      if (urlError) setError(decodeURIComponent(urlError))
       setLoading(false)
     }
     run()
-  }, [router])
+  }, [router, params])
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
