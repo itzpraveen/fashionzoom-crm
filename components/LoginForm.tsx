@@ -49,7 +49,7 @@ export default function LoginForm() {
         <input
           type="email"
           required
-          className="w-full rounded bg-white/5 border border-white/10 px-3 py-2"
+          className="w-full rounded bg-surface-2 border border-line px-3 py-2"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           aria-label="Email address"
@@ -61,11 +61,10 @@ export default function LoginForm() {
       <div className="mt-6 border-t border-white/10 pt-4">
         <p className="text-sm text-muted mb-2">Have a 6‑digit code from the email?</p>
         <form onSubmit={onVerify} className="flex items-center gap-2">
-          <input inputMode="numeric" pattern="[0-9]*" maxLength={6} placeholder="123456" className="rounded bg-white/5 border border-white/10 px-3 py-2" value={otp} onChange={(e)=>setOtp(e.target.value)} aria-label="One-time code" />
+          <input inputMode="numeric" pattern="[0-9]*" maxLength={6} placeholder="123456" className="rounded bg-surface-2 border border-line px-3 py-2" value={otp} onChange={(e)=>setOtp(e.target.value)} aria-label="One-time code" />
           <button className="rounded bg-white/10 px-3 py-2">Verify</button>
         </form>
       </div>
     </div>
   )
 }
-

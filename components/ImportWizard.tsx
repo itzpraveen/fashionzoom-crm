@@ -67,7 +67,7 @@ export function ImportWizard() {
           {['full_name','primary_phone','city','source'].map(f => (
             <div key={f} className="flex items-center gap-2">
               <label className="w-32 text-sm">{f}</label>
-              <input className="rounded bg-white/5 border border-white/10 px-2 py-1" placeholder={`Column for ${f}`} value={mapping[f] || ''} onChange={e=>setMapping({ ...mapping, [f]: e.target.value })} />
+          <input className="rounded bg-surface-2 border border-line px-2 py-1" placeholder={`Column for ${f}`} value={mapping[f] || ''} onChange={e=>setMapping({ ...mapping, [f]: e.target.value })} />
             </div>
           ))}
           <button className="rounded bg-primary text-white px-3 py-2" onClick={doMap}>Next: Dedupe</button>

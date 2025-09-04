@@ -30,11 +30,6 @@ export const viewport = {
 const themeInitScript = `(() => { try { const t = localStorage.getItem('fzcrm-theme'); if (t==='light'||t==='dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {} })();`
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
-  let role: 'TELECALLER'|'MANAGER'|'ADMIN'|null = null
-  if (user) {
-    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle()
-    role = (profile?.role as any) || null
-  }
   return (
     <html lang="en">
       <body className="bg-grid">
@@ -51,9 +46,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
               <Link className="hover:underline" href="/followups">Follow-ups</Link>
               <Link className="hover:underline" href="/import">Import</Link>
               <Link className="hover:underline" href="/settings/templates">Settings</Link>
-              {role === 'ADMIN' && (
-                <Link className="hover:underline" href="/settings/teams">Teams</Link>
-              )}
+              <Link className="hover:underline" href="/settings/teams">Teams</Link>
               <AuthNav />
               <ThemeToggle />
             </div>

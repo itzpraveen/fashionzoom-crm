@@ -70,11 +70,11 @@ export default function OnboardingPage() {
       <form onSubmit={submit} className="space-y-3">
         <div>
           <label className="block text-sm">Full name</label>
-          <input className="w-full rounded bg-white/5 border border-white/10 px-3 py-2" value={fullName} onChange={(e)=>setFullName(e.target.value)} required />
+          <input className="w-full rounded bg-surface-2 border border-line px-3 py-2" value={fullName} onChange={(e)=>setFullName(e.target.value)} required />
         </div>
         <div>
           <label className="block text-sm">Role</label>
-          <select className="w-full rounded bg-white/5 border border-white/10 px-3 py-2" value={role} onChange={(e)=>setRole(e.target.value as any)}>
+          <select className="w-full rounded bg-surface-2 border border-line px-3 py-2" value={role} onChange={(e)=>setRole(e.target.value as any)}>
             <option value="TELECALLER">Telecaller</option>
             <option value="MANAGER">Manager</option>
             <option value="ADMIN">Admin</option>

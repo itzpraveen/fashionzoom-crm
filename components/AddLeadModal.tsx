@@ -28,7 +28,7 @@ export function AddLeadModal({ open, onClose }: Props) {
   if (!open) return null
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur flex items-end sm:items-center justify-center p-3">
-      <div className="w-full max-w-lg bg-bg border border-white/10 rounded p-4">
+      <div className="w-full max-w-lg bg-surface border border-line rounded p-4 shadow-lg">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-lg font-semibold">Add Lead</h3>
           <button onClick={onClose} aria-label="Close" className="text-muted">✕</button>
@@ -63,21 +63,21 @@ export function AddLeadModal({ open, onClose }: Props) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <div>
               <label className="block text-sm">Name</label>
-              <input className="w-full rounded bg-white/5 border border-white/10 px-3 py-2" value={form.full_name} onChange={e=>setForm(f=>({...f, full_name: e.target.value}))} />
+              <input className="w-full rounded bg-surface-2 border border-line px-3 py-2" value={form.full_name} onChange={e=>setForm(f=>({...f, full_name: e.target.value}))} />
             </div>
             <div>
               <label className="block text-sm">Phone*</label>
-              <input required inputMode="tel" className="w-full rounded bg-white/5 border border-white/10 px-3 py-2" value={form.primary_phone} onChange={e=>setForm(f=>({...f, primary_phone: e.target.value}))} />
+              <input required inputMode="tel" className="w-full rounded bg-surface-2 border border-line px-3 py-2" value={form.primary_phone} onChange={e=>setForm(f=>({...f, primary_phone: e.target.value}))} />
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <div>
               <label className="block text-sm">City</label>
-              <input className="w-full rounded bg-white/5 border border-white/10 px-3 py-2" value={form.city} onChange={e=>setForm(f=>({...f, city: e.target.value}))} />
+              <input className="w-full rounded bg-surface-2 border border-line px-3 py-2" value={form.city} onChange={e=>setForm(f=>({...f, city: e.target.value}))} />
             </div>
             <div>
               <label className="block text-sm">Source</label>
-              <select className="w-full rounded bg-white/5 border border-white/10 px-3 py-2" value={form.source} onChange={e=>setForm(f=>({...f, source: e.target.value}))}>
+              <select className="w-full rounded bg-surface-2 border border-line px-3 py-2" value={form.source} onChange={e=>setForm(f=>({...f, source: e.target.value}))}>
                 {['Facebook','Instagram','Website','WalkIn','Referral','Other'].map(s => (<option key={s} value={s}>{s}</option>))}
               </select>
             </div>
@@ -88,31 +88,31 @@ export function AddLeadModal({ open, onClose }: Props) {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <div>
                   <label className="block text-sm">Alt phone</label>
-                  <input inputMode="tel" className="w-full rounded bg-white/5 border border-white/10 px-3 py-2" value={form.alt_phone} onChange={e=>setForm(f=>({...f, alt_phone: e.target.value}))} />
+                  <input inputMode="tel" className="w-full rounded bg-surface-2 border border-line px-3 py-2" value={form.alt_phone} onChange={e=>setForm(f=>({...f, alt_phone: e.target.value}))} />
                 </div>
                 <div>
                   <label className="block text-sm">Email</label>
-                  <input type="email" className="w-full rounded bg-white/5 border border-white/10 px-3 py-2" value={form.email} onChange={e=>setForm(f=>({...f, email: e.target.value}))} />
+                  <input type="email" className="w-full rounded bg-surface-2 border border-line px-3 py-2" value={form.email} onChange={e=>setForm(f=>({...f, email: e.target.value}))} />
                 </div>
               </div>
               <div>
                 <label className="block text-sm">Address</label>
-                <input className="w-full rounded bg-white/5 border border-white/10 px-3 py-2" value={form.address} onChange={e=>setForm(f=>({...f, address: e.target.value}))} />
+                <input className="w-full rounded bg-surface-2 border border-line px-3 py-2" value={form.address} onChange={e=>setForm(f=>({...f, address: e.target.value}))} />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <div>
                   <label className="block text-sm">Pincode</label>
-                  <input inputMode="numeric" className="w-full rounded bg-white/5 border border-white/10 px-3 py-2" value={form.pincode} onChange={e=>setForm(f=>({...f, pincode: e.target.value}))} />
+                  <input inputMode="numeric" className="w-full rounded bg-surface-2 border border-line px-3 py-2" value={form.pincode} onChange={e=>setForm(f=>({...f, pincode: e.target.value}))} />
                 </div>
                 <div>
                   <label className="block text-sm">Product interest</label>
-                  <input className="w-full rounded bg-white/5 border border-white/10 px-3 py-2" value={form.product_interest} onChange={e=>setForm(f=>({...f, product_interest: e.target.value}))} />
+                  <input className="w-full rounded bg-surface-2 border border-line px-3 py-2" value={form.product_interest} onChange={e=>setForm(f=>({...f, product_interest: e.target.value}))} />
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <div>
                   <label className="block text-sm">Tags (comma separated)</label>
-                  <input className="w-full rounded bg-white/5 border border-white/10 px-3 py-2" value={form.tags} onChange={e=>setForm(f=>({...f, tags: e.target.value}))} />
+                  <input className="w-full rounded bg-surface-2 border border-line px-3 py-2" value={form.tags} onChange={e=>setForm(f=>({...f, tags: e.target.value}))} />
                 </div>
                 <div className="flex items-end gap-2">
                   <input id="consent" type="checkbox" checked={form.consent} onChange={(e)=>setForm(f=>({...f, consent: e.target.checked}))} />
@@ -121,7 +121,7 @@ export function AddLeadModal({ open, onClose }: Props) {
               </div>
               <div>
                 <label className="block text-sm">Notes</label>
-                <textarea rows={2} className="w-full rounded bg-white/5 border border-white/10 px-3 py-2" value={form.notes} onChange={e=>setForm(f=>({...f, notes: e.target.value}))} />
+                <textarea rows={2} className="w-full rounded bg-surface-2 border border-line px-3 py-2" value={form.notes} onChange={e=>setForm(f=>({...f, notes: e.target.value}))} />
               </div>
             </div>
           )}

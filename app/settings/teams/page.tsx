@@ -35,7 +35,7 @@ export default async function TeamsSettingsPage() {
       <section className="space-y-2">
         <h2 className="font-medium">Create Team</h2>
         <form action={createTeamAction} className="flex gap-2">
-          <input name="name" placeholder="Team name" className="rounded bg-white/5 border border-white/10 px-3 py-2" required />
+          <input name="name" placeholder="Team name" className="rounded bg-surface-2 border border-line px-3 py-2" required />
           <button className="rounded bg-primary text-white px-3 py-2">Create</button>
         </form>
       </section>
@@ -45,21 +45,21 @@ export default async function TeamsSettingsPage() {
         <form action={assignAction} className="grid grid-cols-1 sm:grid-cols-5 gap-2 items-end">
           <div>
             <label className="block text-xs text-muted">Email (or User ID)</label>
-            <input name="email" placeholder="user@example.com" className="w-full rounded bg-white/5 border border-white/10 px-3 py-2" />
+            <input name="email" placeholder="user@example.com" className="w-full rounded bg-surface-2 border border-line px-3 py-2" />
           </div>
           <div>
             <label className="block text-xs text-muted">User ID (optional)</label>
-            <input name="userId" placeholder="uuid" className="w-full rounded bg-white/5 border border-white/10 px-3 py-2" />
+            <input name="userId" placeholder="uuid" className="w-full rounded bg-surface-2 border border-line px-3 py-2" />
           </div>
           <div>
             <label className="block text-xs text-muted">Team</label>
-            <select name="teamId" className="w-full rounded bg-white/5 border border-white/10 px-3 py-2" required>
+            <select name="teamId" className="w-full rounded bg-surface-2 border border-line px-3 py-2" required>
               {(teams||[]).map(t => (<option key={t.id} value={t.id}>{t.name}</option>))}
             </select>
           </div>
           <div>
             <label className="block text-xs text-muted">Role</label>
-            <select name="role" className="w-full rounded bg-white/5 border border-white/10 px-3 py-2">
+            <select name="role" className="w-full rounded bg-surface-2 border border-line px-3 py-2">
               {['TELECALLER','MANAGER','ADMIN'].map(r => (<option key={r} value={r}>{r}</option>))}
             </select>
           </div>

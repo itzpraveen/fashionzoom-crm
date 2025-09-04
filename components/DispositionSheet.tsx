@@ -41,16 +41,16 @@ export function DispositionSheet({ leadId, onDone }: { leadId: string; onDone?: 
           </div>
           <div>
             <label htmlFor="note" className="block text-sm">Note</label>
-            <textarea id="note" className="w-full rounded bg-white/5 border border-white/10 p-2" rows={3} value={note} onChange={e=>setNote(e.target.value)} />
+            <textarea id="note" className="w-full rounded bg-surface-2 border border-line p-2" rows={3} value={note} onChange={e=>setNote(e.target.value)} />
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div>
               <label className="block text-sm">Next follow-up</label>
-              <input type="datetime-local" className="w-full rounded bg-white/5 border border-white/10 px-2 py-1" value={dueAt} onChange={e=>setDueAt(e.target.value)} />
+              <input type="datetime-local" className="w-full rounded bg-surface-2 border border-line px-2 py-1" value={dueAt} onChange={e=>setDueAt(e.target.value)} />
             </div>
             <div>
               <label className="block text-sm">Priority</label>
-              <select className="w-full rounded bg-white/5 border border-white/10 px-2 py-1" value={priority} onChange={e=>setPriority(e.target.value as any)}>
+              <select className="w-full rounded bg-surface-2 border border-line px-2 py-1" value={priority} onChange={e=>setPriority(e.target.value as any)}>
                 <option>LOW</option>
                 <option>MEDIUM</option>
                 <option>HIGH</option>

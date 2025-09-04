@@ -12,6 +12,9 @@ const config: Config = {
         bg: 'var(--bg)',
         fg: 'var(--fg)',
         muted: 'var(--muted)',
+        surface: 'var(--surface)',
+        'surface-2': 'var(--surface-2)',
+        line: 'var(--border)',
         primary: 'var(--primary)',
         danger: 'var(--danger)',
         warning: 'var(--warning)',
@@ -23,4 +26,3 @@ const config: Config = {
 }
 
 export default config
-

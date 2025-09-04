@@ -20,7 +20,7 @@ export function LeadCard({ lead, role }: { lead: Lead; role?: 'TELECALLER'|'MANA
   const router = useRouter()
   const masked = maskPhone(lead.primary_phone, role)
   return (
-    <div className="bg-white/5 border border-white/10 rounded p-3 flex items-center gap-3">
+    <div className="bg-surface border border-line rounded p-3 flex items-center gap-3">
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <div className="font-medium truncate">{lead.full_name || '—'}</div>

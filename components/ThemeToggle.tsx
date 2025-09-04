@@ -30,7 +30,7 @@ export function ThemeToggle() {
   return (
     <div className="relative">
       <label className="visually-hidden" htmlFor="theme">Theme</label>
-      <select id="theme" className="bg-white/5 border border-white/10 rounded px-2 py-1 text-sm"
+      <select id="theme" className="bg-surface-2 border border-line rounded px-2 py-1 text-sm"
         value={theme}
         onChange={(e)=>onChange(e.target.value as Theme)}
         aria-label="Theme switcher">
@@ -41,4 +41,3 @@ export function ThemeToggle() {
     </div>
   )
 }
-
