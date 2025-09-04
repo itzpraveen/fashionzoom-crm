@@ -2,9 +2,11 @@
 import { useEffect, useState } from 'react'
 import { createBrowserClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 
 export default function LoginPage() {
   const router = useRouter()
+  const params = useSearchParams()
   const [email, setEmail] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [sent, setSent] = useState(false)
@@ -25,7 +27,8 @@ export default function LoginPage() {
     e.preventDefault()
     setError(null)
     const supabase = createBrowserClient()
-    const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: `${location.origin}/onboarding` } })
+    const redirect = params.get('redirect') || '/dashboard'
+    const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: `${location.origin}/onboarding?redirect=${encodeURIComponent(redirect)}` } })
     if (error) setError(error.message)
     else setSent(true)
   }

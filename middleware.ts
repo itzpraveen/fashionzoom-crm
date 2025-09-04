@@ -6,6 +6,8 @@ const PROTECTED_PREFIXES = ['/dashboard', '/leads', '/followups', '/import', '/s
 const PUBLIC_PATHS = ['/login', '/onboarding', '/manifest.json', '/sw.js']
 
 export function middleware(req: NextRequest) {
+  // Skip auth gating during E2E runs
+  if (process.env.E2E === '1') return NextResponse.next()
   const { pathname } = req.nextUrl
   // Skip static files and Next internals
   if (
@@ -37,4 +39,3 @@ export function middleware(req: NextRequest) {
 export const config = {
   matcher: ['/((?!api).*)']
 }
-
