@@ -29,7 +29,10 @@ export function middleware(req: NextRequest) {
   if (PROTECTED_PREFIXES.some(p => pathname.startsWith(p)) && !hasAuth) {
     const url = req.nextUrl.clone()
     url.pathname = '/login'
-    url.searchParams.set('redirect', pathname)
+    // Keep the URL clean for the common entry points
+    if (pathname !== '/' && pathname !== '/dashboard') {
+      url.searchParams.set('redirect', pathname)
+    }
     return NextResponse.redirect(url)
   }
 
