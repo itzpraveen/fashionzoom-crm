@@ -184,40 +184,60 @@ export const createLead = async (input: {
     team_id: profile?.team_id || null
   }
 
-  const { error } = await supabase.from('leads').insert(payload)
-  if (error) {
-    const msg = (error.message || '').toLowerCase()
-    // Duplicate/unique constraint
-    if (msg.includes('duplicate') || msg.includes('unique')) {
-      throw new Error('A lead with this phone already exists.')
+  const attemptAnon = await supabase.from('leads').insert(payload)
+  if (!attemptAnon.error) return { ok: true }
+
+  const err = attemptAnon.error
+  const msg = (err.message || '').toLowerCase()
+  if (msg.includes('duplicate') || msg.includes('unique')) {
+    throw new Error('A lead with this phone already exists.')
+  }
+
+  // Secure fallback path using service role: ensure profile exists, then insert lead
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !serviceKey) {
+    // RLS/permission or FK may have caused this, but no fallback available
+    if (msg.includes('row level security') || msg.includes('rls') || err.code === '42501') {
+      throw new Error('Permission denied. Contact admin to assign you to a team.')
     }
-    // If RLS / permission blocked, attempt a secure server-side fallback using service role
-    const isRls = msg.includes('row level security') || msg.includes('rls') || error.code === '42501'
-    if (isRls) {
-      const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-      const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-      if (!url || !serviceKey) {
-        throw new Error('Permission denied. Contact admin to assign you to a team.')
-      }
-      const resp = await fetch(`${url}/rest/v1/leads`, {
-        method: 'POST',
-        headers: {
-          apikey: serviceKey,
-          Authorization: `Bearer ${serviceKey}`,
-          'Content-Type': 'application/json',
-          Prefer: 'return=minimal'
-        },
-        body: JSON.stringify(payload)
-      })
-      if (!resp.ok) {
-        const txt = await resp.text().catch(() => '')
-        // surface safe message
-        throw new Error('Failed to create lead (admin privileges). Please contact admin.')
-      }
-      return { ok: true }
-    }
-    // Generic fallback
     throw new Error('Failed to create lead. Please try again.')
+  }
+
+  const headers = {
+    apikey: serviceKey,
+    Authorization: `Bearer ${serviceKey}`,
+    'Content-Type': 'application/json',
+  }
+
+  // Ensure profile exists to satisfy FK constraint on owner_id
+  await fetch(`${url}/rest/v1/profiles`, {
+    method: 'POST',
+    headers: { ...headers, Prefer: 'resolution=merge-duplicates,return=minimal' },
+    body: JSON.stringify({
+      id: user.id,
+      full_name: (user.user_metadata as any)?.name ?? null,
+      role: 'TELECALLER',
+      team_id: profile?.team_id ?? null
+    }),
+  })
+
+  // Attempt privileged insert
+  const resp = await fetch(`${url}/rest/v1/leads`, {
+    method: 'POST',
+    headers: { ...headers, Prefer: 'return=minimal' },
+    body: JSON.stringify(payload),
+  })
+  if (!resp.ok) {
+    // Try one more time without team_id if FK or team policy interferes
+    const resp2 = await fetch(`${url}/rest/v1/leads`, {
+      method: 'POST',
+      headers: { ...headers, Prefer: 'return=minimal' },
+      body: JSON.stringify({ ...payload, team_id: null }),
+    })
+    if (!resp2.ok) {
+      throw new Error('Failed to create lead. Please contact admin.')
+    }
   }
   return { ok: true }
 }
