@@ -12,11 +12,20 @@ export function createServerSupabase() {
           return cookieStore.get(name)?.value
         },
         set(name: string, value: string, options: CookieOptions) {
-          cookieStore.set({ name, value, ...options })
+          try {
+            cookieStore.set({ name, value, ...options })
+          } catch {
+            // In RSC render phase, Next.js disallows cookie mutations.
+            // Ignore here; cookies will be set in /auth/callback or server actions.
+          }
         },
         remove(name: string, options: CookieOptions) {
           // expire cookie immediately to ensure removal across browsers
-          cookieStore.set({ name, value: '', ...options, maxAge: 0 })
+          try {
+            cookieStore.set({ name, value: '', ...options, maxAge: 0 })
+          } catch {
+            // See note above about RSC render restrictions.
+          }
         },
       }
     }
