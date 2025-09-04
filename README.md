@@ -43,6 +43,7 @@ pnpm e2e:install
 Run SQL migrations in Supabase:
 - supabase/sql/001_schema.sql
 - supabase/sql/010_seed.sql (optional seed of ~150 Kerala leads)
+ - supabase/sql/020_relax_leads_insert_policy.sql (allow owners without team to create leads)
 
 ### Edge Function (lead ingestion)
 Serve locally:
@@ -65,3 +66,4 @@ Note: E2E tests expect the dev server running and a signed-in session or seeded 
 - Phone masking is applied in list views for non-managers. Full phone appears on detail if role is MANAGER/ADMIN.
 - Simple in-memory rate limiting guards server actions.
 - Service worker caches app shell; basic offline support included.
+- Manifest icons use SVG to avoid missing PNG assets; replace with your brand icons anytime under `public/icons/`.
