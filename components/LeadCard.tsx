@@ -1,7 +1,8 @@
 "use client"
-import { maskPhone } from '@/lib/phone'
+import { maskPhone, waLink } from '@/lib/phone'
 import { useRouter } from 'next/navigation'
 import { BadgeScore } from './BadgeScore'
+import { Phone, MessageCircle, ExternalLink } from 'lucide-react'
 
 export type Lead = {
   id: string
@@ -17,6 +18,7 @@ export type Lead = {
 
 export function LeadCard({ lead, role }: { lead: Lead; role?: 'TELECALLER'|'MANAGER'|'ADMIN' }) {
   const router = useRouter()
+  const masked = maskPhone(lead.primary_phone, role)
   return (
     <div className="bg-white/5 border border-white/10 rounded p-3 flex items-center gap-3">
       <div className="flex-1 min-w-0">
@@ -25,6 +27,7 @@ export function LeadCard({ lead, role }: { lead: Lead; role?: 'TELECALLER'|'MANA
           <BadgeScore score={lead.score} />
           {lead.status === 'DNC' && <span className="text-xs text-danger ml-1">DNC</span>}
         </div>
+        <div className="text-xs text-muted mt-0.5">{masked}</div>
         <div className="text-xs text-muted mt-0.5">
           <span>{lead.city || '—'}</span>
           <span className="mx-2">•</span>
@@ -35,18 +38,31 @@ export function LeadCard({ lead, role }: { lead: Lead; role?: 'TELECALLER'|'MANA
       <div className="flex items-center gap-2">
         <a
           href={`tel:${lead.primary_phone}`}
-          className="touch-target rounded bg-white/10 px-3 py-2 text-sm"
-          aria-label={`Call ${maskPhone(lead.primary_phone, role)}`}
-        >Call</a>
+          className="touch-target rounded bg-white/10 px-3 py-2 text-sm flex items-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
+          aria-label={`Call ${masked}`}
+        >
+          <Phone size={16} aria-hidden="true" />
+          <span className="hidden sm:inline">Call</span>
+        </a>
         <a
-          href={`https://wa.me/91${lead.primary_phone}`}
+          href={waLink(lead.primary_phone)}
           target="_blank"
-          className="touch-target rounded bg-white/10 px-3 py-2 text-sm"
-          aria-label="WhatsApp"
-        >WA</a>
-        <button onClick={()=>router.push(`/leads/${lead.id}`)} className="touch-target rounded bg-primary text-black px-3 py-2 text-sm" aria-label="Open">Open</button>
+          rel="noopener noreferrer"
+          className="touch-target rounded bg-white/10 px-3 py-2 text-sm flex items-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
+          aria-label={`WhatsApp ${masked}`}
+        >
+          <MessageCircle size={16} aria-hidden="true" />
+          <span className="hidden sm:inline">WA</span>
+        </a>
+        <button
+          onClick={()=>router.push(`/leads/${lead.id}`)}
+          className="touch-target rounded bg-primary text-black px-3 py-2 text-sm flex items-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
+          aria-label="Open lead"
+        >
+          <ExternalLink size={16} aria-hidden="true" />
+          <span className="hidden sm:inline">Open</span>
+        </button>
       </div>
     </div>
   )
 }
-

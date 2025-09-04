@@ -7,8 +7,9 @@ const rootDir = dirname(fileURLToPath(new URL('./', import.meta.url)))
 export default defineConfig({
   resolve: {
     alias: {
-      '@': rootDir,
-      '@/*': rootDir,
+      '@/components': resolve(rootDir, 'components'),
+      '@/lib': resolve(rootDir, 'lib'),
+      '@/actions': resolve(rootDir, 'actions'),
     }
   },
   test: {

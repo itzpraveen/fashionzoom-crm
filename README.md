@@ -22,6 +22,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 ```
 
+You can copy `.env.example` to `.env.local` and fill the values.
+
 ### Install & run
 
 ```
@@ -30,6 +32,12 @@ pnpm dev
 ```
 
 Open http://localhost:3000
+
+To run E2E tests locally, install Playwright browsers once:
+
+```
+pnpm e2e:install
+```
 
 ### Database
 Run SQL migrations in Supabase:
@@ -50,9 +58,10 @@ Deploy via Supabase CLI. Function path: `supabase/functions/ingest-lead/index.ts
 - Unit (Vitest): `pnpm test`
 - E2E (Playwright): `pnpm e2e`
 
+Note: E2E tests expect the dev server running and a signed-in session or seeded state matching the test assumptions.
+
 ## Notes
 
 - Phone masking is applied in list views for non-managers. Full phone appears on detail if role is MANAGER/ADMIN.
 - Simple in-memory rate limiting guards server actions.
 - Service worker caches app shell; basic offline support included.
-

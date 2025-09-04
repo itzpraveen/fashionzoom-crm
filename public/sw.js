@@ -1,8 +1,22 @@
 // Cache only static assets. Avoid caching authenticated HTML routes.
+const CACHE_NAME = 'fzcrm-static-v2'
+
 self.addEventListener('install', (event) => {
+  // Take over immediately on update to reduce old SWs lingering
+  self.skipWaiting()
   event.waitUntil((async () => {
-    const cache = await caches.open('fzcrm-shell-v1')
-    await cache.addAll(['/', '/manifest.json'])
+    const cache = await caches.open(CACHE_NAME)
+    // Precache only truly static assets
+    await cache.addAll(['/manifest.json'])
+  })())
+})
+
+self.addEventListener('activate', (event) => {
+  // Clean up old caches and claim clients
+  event.waitUntil((async () => {
+    const keys = await caches.keys()
+    await Promise.all(keys.map(k => (k === CACHE_NAME ? Promise.resolve() : caches.delete(k))))
+    await self.clients.claim()
   })())
 })
 
@@ -20,7 +34,7 @@ self.addEventListener('fetch', (event) => {
   if (!isStatic) return // do not cache dynamic or authenticated routes
 
   event.respondWith((async () => {
-    const cache = await caches.open('fzcrm-shell-v1')
+    const cache = await caches.open(CACHE_NAME)
     const cached = await cache.match(request)
     if (cached) return cached
     try {

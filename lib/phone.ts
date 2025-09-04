@@ -1,20 +1,23 @@
 export function normalizePhone(p?: string | null): string | null {
   if (!p) return null
   const digits = p.replace(/\D/g, '')
-  return digits.replace(/^(91|0)+/, '')
+  const stripped = digits.replace(/^(91|0)+/, '')
+  return stripped.length > 10 ? stripped.slice(-10) : stripped
 }
 
 export function maskPhone(p?: string | null, role?: 'TELECALLER'|'MANAGER'|'ADMIN'): string {
   const n = normalizePhone(p) || ''
   if (!n) return ''
   if (role === 'MANAGER' || role === 'ADMIN') return n
-  // mask e.g. 98•••40•••
-  return n.replace(/(\d{2})(\d{3})(\d{2})(\d{3})/, (_, a,b,c,d) => `${a}\u2022\u2022\u2022${c}\u2022\u2022\u2022`)
+  // mask e.g. 98•••40••• when 10 digits
+  if (n.length === 10) return n.replace(/(\d{2})(\d{3})(\d{2})(\d{3})/, (_, a,b,c,d) => `${a}\u2022\u2022\u2022${c}\u2022\u2022\u2022`)
+  // Fallback: reveal first 2 and last 2 digits, mask middle
+  return n.replace(/^(\d{2})(.*)(\d{2})$/, (_, a, mid, z) => `${a}${'\u2022'.repeat(Math.max(3, mid.length))}${z}`)
 }
 
 export function waLink(phone: string, message?: string) {
   const n = normalizePhone(phone)
-  const base = `https://wa.me/91${n}`
+  const base = n ? `https://wa.me/91${n}` : `https://wa.me/`
   if (message) return `${base}?text=${encodeURIComponent(message)}`
   return base
 }
@@ -35,4 +38,3 @@ export function simpleLeadScore(status: string, lastActivityAt?: string | null) 
   }
   return Math.max(0, Math.min(100, score))
 }
-
