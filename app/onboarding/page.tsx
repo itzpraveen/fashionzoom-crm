@@ -4,6 +4,8 @@ import { createBrowserClient } from '@/lib/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { bootstrapProfile } from '@/actions/auth'
 
+export const dynamic = 'force-dynamic'
+
 export default function OnboardingPage() {
   const supabase = createBrowserClient()
   const router = useRouter()

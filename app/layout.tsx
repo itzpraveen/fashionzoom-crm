@@ -1,7 +1,8 @@
 import './globals.css'
 import type { ReactNode } from 'react'
 import Link from 'next/link'
-import SWRegister from './sw-register'
+// PWA is disabled for active development; unregister any prior SWs
+import SWUnregister from './sw-unregister'
 import FooterNav from '@/components/FooterNav'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { createServerSupabase } from '@/lib/supabase/server'
@@ -74,8 +75,8 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <main className="mx-auto max-w-6xl px-4 py-4 pb-20 sm:pb-6">
           {children}
         </main>
-        {/* Register service worker across the app */}
-        <SWRegister />
+        {/* Ensure any previously installed SW is removed during active development */}
+        <SWUnregister />
         {/* Bottom navigation for mobile */}
         <FooterNav />
       </body>
