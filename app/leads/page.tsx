@@ -16,7 +16,7 @@ const PAGE_SIZE = 20
 export default async function LeadsPage({
   searchParams,
 }: {
-  searchParams: { page?: string; status?: string; search?: string; due?: string }
+  searchParams: { page?: string; status?: string; search?: string; due?: string; event_id?: string; program_id?: string }
 }) {
   const supabase = createServerSupabase()
   const { data: { user } } = await supabase.auth.getUser()
@@ -28,6 +28,21 @@ export default async function LeadsPage({
   const role = (profile?.role ?? 'TELECALLER') as 'TELECALLER'|'MANAGER'|'ADMIN'
   const view = (searchParams as any).view || (role !== 'TELECALLER' ? 'table' : 'cards')
   
+  // Optional: filter by event/program via enrollments
+  let leadIdsFilter: string[] = []
+  if (searchParams.event_id || searchParams.program_id) {
+    let enrollQuery = supabase
+      .from('lead_enrollments')
+      .select('lead_id')
+    if (searchParams.event_id) enrollQuery = enrollQuery.eq('event_id', searchParams.event_id)
+    if (searchParams.program_id) enrollQuery = enrollQuery.eq('program_id', searchParams.program_id)
+    const { data: enrolls } = await enrollQuery.limit(1000)
+    leadIdsFilter = (enrolls || []).map((r: any) => r.lead_id)
+    if (leadIdsFilter.length === 0) {
+      return <EmptyState title="No leads found" hint="No leads match the selected event/program" />
+    }
+  }
+
   // Build query
   let query = supabase
     .from('leads')
@@ -40,6 +55,10 @@ export default async function LeadsPage({
     .eq('owner_id', user.id)
     .eq('is_deleted', false)
     .range(offset, offset + PAGE_SIZE - 1)
+  
+  if (leadIdsFilter.length > 0) {
+    query = query.in('id', leadIdsFilter)
+  }
   
   // Apply filters
   if (searchParams.status) {
@@ -81,16 +100,17 @@ export default async function LeadsPage({
 
   return (
     <div className="space-y-4">
-      {/* Header: actions + view toggle + filters */}
-      <div className="flex items-center justify-between gap-4">
+      {/* Header: title + actions */}
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-lg sm:text-xl font-semibold">Leads</h1>
         <div className="flex items-center gap-2">
-          <AddLeadButton />
+          <LeadsFilters status={searchParams.status} search={searchParams.search} due={searchParams.due} />
           <div className="hidden sm:flex items-center gap-1 text-xs border border-white/10 rounded-md overflow-hidden">
             <Link href={{ pathname: '/leads', query: { ...searchParams, view: 'cards' } }} className={`px-2 py-1 ${view==='cards'?'bg-white/10':''}`}>Cards</Link>
             <Link href={{ pathname: '/leads', query: { ...searchParams, view: 'table' } }} className={`px-2 py-1 ${view==='table'?'bg-white/10':''}`}>Table</Link>
           </div>
+          <AddLeadButton />
         </div>
-        <LeadsFilters status={searchParams.status} search={searchParams.search} due={searchParams.due} />
       </div>
       
       {leads?.length === 0 ? (
@@ -104,21 +124,21 @@ export default async function LeadsPage({
         <>
           {overdue.length > 0 && (
             <section aria-label="Overdue" className="space-y-2">
-              <h2 className="font-semibold text-danger">Overdue ({overdue.length})</h2>
+              <h2 className="font-semibold text-danger flex items-center gap-2">Overdue <span className="text-xs rounded-full px-2 py-0.5 border border-danger/30 bg-danger/10 text-danger">{overdue.length}</span></h2>
               {overdue.map((l: any) => <LeadCard key={l.id} lead={l as any} role={role} />)}
             </section>
           )}
           
           {due.length > 0 && (
             <section aria-label="Due soon" className="space-y-2">
-              <h2 className="font-semibold">Due soon ({due.length})</h2>
+              <h2 className="font-semibold flex items-center gap-2">Due soon <span className="text-xs rounded-full px-2 py-0.5 border border-line bg-black/5 text-fg/70 dark:bg-white/5 dark:text-white/80">{due.length}</span></h2>
               {due.map((l: any) => <LeadCard key={l.id} lead={l as any} role={role} />)}
             </section>
           )}
           
           {fresh.length > 0 && (
             <section aria-label="New" className="space-y-2">
-              <h2 className="font-semibold">New ({fresh.length})</h2>
+              <h2 className="font-semibold flex items-center gap-2">New <span className="text-xs rounded-full px-2 py-0.5 border border-line bg-black/5 text-fg/70 dark:bg-white/5 dark:text-white/80">{fresh.length}</span></h2>
               {fresh.map((l: any) => <LeadCard key={l.id} lead={l as any} role={role} />)}
             </section>
           )}

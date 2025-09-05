@@ -153,6 +153,9 @@ export const createLead = async (input: {
   tags?: string[]
   notes?: string
   consent?: boolean
+  // optional: event/program enrollment on creation
+  event_id?: string
+  program_id?: string
 }): Promise<{ ok: true } | { ok: false; error: string }> => {
   const schema = z.object({
     full_name: z.string().optional(),
@@ -166,7 +169,9 @@ export const createLead = async (input: {
     product_interest: z.string().optional(),
     tags: z.array(z.string()).optional(),
     notes: z.string().optional(),
-    consent: z.boolean().optional()
+    consent: z.boolean().optional(),
+    event_id: z.string().uuid().optional(),
+    program_id: z.string().uuid().optional()
   })
   try {
     const data = schema.parse(input)
@@ -203,8 +208,20 @@ export const createLead = async (input: {
       team_id: profile?.team_id || null
     }
 
-    const attemptAnon = await supabase.from('leads').insert(payload)
-    if (!attemptAnon.error) return { ok: true }
+    const attemptAnon = await supabase.from('leads').insert(payload).select('id').single()
+    if (!attemptAnon.error) {
+      const leadId = (attemptAnon.data as any)?.id
+      if (leadId && (data.event_id || data.program_id)) {
+        // Insert enrollment tying lead to event/program
+        await supabase.from('lead_enrollments').insert({
+          lead_id: leadId,
+          event_id: data.event_id || null,
+          program_id: data.program_id || null,
+          status: 'INTERESTED'
+        } as any)
+      }
+      return { ok: true }
+    }
 
     const err = attemptAnon.error
     const msg = (err.message || '').toLowerCase()
@@ -239,13 +256,13 @@ export const createLead = async (input: {
       }),
     })
 
-    const resp = await fetch(`${url}/rest/v1/leads`, {
+    const resp = await fetch(`${url}/rest/v1/leads?select=id`, {
       method: 'POST',
       headers: { ...headers, Prefer: 'return=minimal' },
       body: JSON.stringify(payload),
     })
     if (!resp.ok) {
-      const resp2 = await fetch(`${url}/rest/v1/leads`, {
+      const resp2 = await fetch(`${url}/rest/v1/leads?select=id`, {
         method: 'POST',
         headers: { ...headers, Prefer: 'return=minimal' },
         body: JSON.stringify({ ...payload, team_id: null }),
@@ -253,9 +270,76 @@ export const createLead = async (input: {
       if (!resp2.ok) {
         return { ok: false, error: 'Failed to create lead. Please contact admin.' }
       }
+      // attempt to parse id if available
+      try {
+        const j = await resp2.json().catch(()=>null)
+        const leadId = Array.isArray(j) ? j[0]?.id : j?.id
+        if (leadId && (data.event_id || data.program_id)) {
+          await fetch(`${url}/rest/v1/lead_enrollments`, {
+            method: 'POST',
+            headers: { ...headers, Prefer: 'return=minimal' },
+            body: JSON.stringify({
+              lead_id: leadId,
+              event_id: data.event_id || null,
+              program_id: data.program_id || null,
+              status: 'INTERESTED'
+            })
+          })
+        }
+      } catch {}
+      return { ok: true }
     }
+    // If created, optionally add enrollment
+    try {
+      const j = await resp.json().catch(()=>null)
+      const leadId = Array.isArray(j) ? j[0]?.id : j?.id
+      if (leadId && (data.event_id || data.program_id)) {
+        await fetch(`${url}/rest/v1/lead_enrollments`, {
+          method: 'POST',
+          headers: { ...headers, Prefer: 'return=minimal' },
+          body: JSON.stringify({
+            lead_id: leadId,
+            event_id: data.event_id || null,
+            program_id: data.program_id || null,
+            status: 'INTERESTED'
+          })
+        })
+      }
+    } catch {}
     return { ok: true }
   } catch (e: any) {
     return { ok: false, error: e?.message || 'Unable to create lead' }
+  }
+}
+
+// Add or update a lead enrollment
+export const upsertEnrollment = async (input: { leadId: string; eventId: string; programId?: string; status?: 'INTERESTED'|'APPLIED'|'ENROLLED'|'ATTENDED'|'CANCELLED'; notes?: string }) => {
+  const schema = z.object({
+    leadId: z.string().uuid(),
+    eventId: z.string().uuid(),
+    programId: z.string().uuid().optional(),
+    status: z.enum(['INTERESTED','APPLIED','ENROLLED','ATTENDED','CANCELLED']).optional(),
+    notes: z.string().optional()
+  })
+  const data = schema.parse(input)
+  const supabase = createServerSupabase()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+  limit(user.id)
+
+  // Try to find an existing enrollment for lead + event (+ program if provided)
+  let query = supabase.from('lead_enrollments').select('id').eq('lead_id', data.leadId).eq('event_id', data.eventId)
+  if (data.programId) query = query.eq('program_id', data.programId)
+  const existing = await query.maybeSingle()
+  if (existing?.data?.id) {
+    await supabase.from('lead_enrollments').update({ status: data.status || 'INTERESTED', notes: data.notes || null }).eq('id', existing.data.id)
+  } else {
+    await supabase.from('lead_enrollments').insert({
+      lead_id: data.leadId,
+      event_id: data.eventId,
+      program_id: data.programId || null,
+      status: data.status || 'INTERESTED',
+      notes: data.notes || null
+    } as any)
   }
 }

@@ -117,7 +117,10 @@ function tablesMap() {
     activities: getTable('activities'),
     followups: getTable('followups'),
     templates: getTable('templates'),
-    assignment_rules: getTable('assignment_rules')
+    assignment_rules: getTable('assignment_rules'),
+    events: getTable('events'),
+    programs: getTable('programs'),
+    lead_enrollments: getTable('lead_enrollments')
   }
 }
 

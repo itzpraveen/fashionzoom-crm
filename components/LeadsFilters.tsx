@@ -1,11 +1,25 @@
 "use client"
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useCallback, useRef } from 'react'
+import React, { useCallback, useRef } from 'react'
 
 export function LeadsFilters({ status, search, due }: { status?: string; search?: string; due?: string }) {
   const router = useRouter()
   const params = useSearchParams()
   const debounceRef = useRef<NodeJS.Timeout | null>(null)
+  // lazy import to avoid SSR issues
+  const [events, setEvents] = React.useState<any[]>([])
+  const [programs, setPrograms] = React.useState<any[]>([])
+  const [eventId, setEventId] = React.useState<string | undefined>(() => params?.get('event_id') || undefined)
+  const [programId, setProgramId] = React.useState<string | undefined>(() => params?.get('program_id') || undefined)
+
+  React.useEffect(() => {
+    import('@/lib/supabase/client-with-retry').then(({ createBrowserClient }) => {
+      const sb = createBrowserClient()
+      sb.from('events').select('*').order('created_at', { ascending: false }).then(({ data }) => setEvents((data as any) || []))
+      const ev = params?.get('event_id')
+      if (ev) sb.from('programs').select('*').eq('event_id', ev).order('created_at', { ascending: true }).then(({ data }) => setPrograms((data as any) || []))
+    })
+  }, [])
 
   const buildUrl = useCallback((next: Record<string, string | undefined>) => {
     const p = new URLSearchParams(params?.toString())
@@ -20,6 +34,14 @@ export function LeadsFilters({ status, search, due }: { status?: string; search?
     if (next.due !== undefined) {
       if (next.due) p.set('due', next.due)
       else p.delete('due')
+    }
+    if (next.event_id !== undefined) {
+      if (next.event_id) p.set('event_id', next.event_id)
+      else p.delete('event_id')
+    }
+    if (next.program_id !== undefined) {
+      if (next.program_id) p.set('program_id', next.program_id)
+      else p.delete('program_id')
     }
     p.set('page', '1')
     return `?${p.toString()}`
@@ -66,6 +88,40 @@ export function LeadsFilters({ status, search, due }: { status?: string; search?
         />
         Today
       </label>
+      {/* Event filter */}
+      <select
+        className="form-input w-auto"
+        value={eventId || ''}
+        onChange={(e) => {
+          const val = e.target.value || undefined
+          setEventId(val)
+          setProgramId(undefined)
+          router.push(buildUrl({ event_id: val, program_id: undefined }))
+          // refresh programs
+          import('@/lib/supabase/client-with-retry').then(({ createBrowserClient }) => {
+            const sb = createBrowserClient()
+            if (val) sb.from('programs').select('*').eq('event_id', val).order('created_at', { ascending: true }).then(({ data }) => setPrograms((data as any) || []))
+            else setPrograms([])
+          })
+        }}
+      >
+        <option value="">All Events</option>
+        {events.map((e:any)=>(<option key={e.id} value={e.id}>{e.season ? `${e.name} (${e.season})` : e.name}</option>))}
+      </select>
+      {/* Program filter */}
+      <select
+        className="form-input w-auto"
+        value={programId || ''}
+        onChange={(e) => {
+          const val = e.target.value || undefined
+          setProgramId(val)
+          router.push(buildUrl({ program_id: val }))
+        }}
+        disabled={!eventId}
+      >
+        <option value="">All Programs</option>
+        {programs.map((p:any)=>(<option key={p.id} value={p.id}>{p.name}</option>))}
+      </select>
     </div>
   )
 }

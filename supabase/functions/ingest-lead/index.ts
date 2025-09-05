@@ -24,5 +24,30 @@ serve(async (req) => {
   })
   if (!resp.ok) return new Response(await resp.text(), { status: resp.status })
   const data = await resp.json()
+
+  // Optionally attach enrollment if event_id/program_id provided
+  try {
+    const leadId = Array.isArray(data) ? data[0]?.id : data?.id
+    const eventId = body.event_id || body.eventId
+    const programId = body.program_id || body.programId
+    if (leadId && eventId) {
+      await fetch(`${SUPABASE_URL}/rest/v1/lead_enrollments`, {
+        method: 'POST',
+        headers: {
+          'apikey': SERVICE_ROLE_KEY,
+          'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({
+          lead_id: leadId,
+          event_id: eventId,
+          program_id: programId || null,
+          status: 'INTERESTED'
+        })
+      })
+    }
+  } catch (_) {}
+
   return new Response(JSON.stringify({ ok: true, data }), { headers: { 'Content-Type': 'application/json' } })
 })

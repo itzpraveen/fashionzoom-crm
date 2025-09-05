@@ -31,6 +31,9 @@ type Tables = {
   followups: Row[]
   templates: Row[]
   assignment_rules: Row[]
+  events: Row[]
+  programs: Row[]
+  lead_enrollments: Row[]
 }
 
 let seeded = false
@@ -56,7 +59,10 @@ const tables: Tables = {
   activities: [],
   followups: [],
   templates: [],
-  assignment_rules: []
+  assignment_rules: [],
+  events: [],
+  programs: [],
+  lead_enrollments: []
 }
 
 function nowIso(offsetMinutes = 0) {
@@ -77,6 +83,14 @@ export function seedIfNeeded() {
   )
   // Assignment rules
   tables.assignment_rules.push({ id: uuid(), name: 'Round-robin', strategy: 'ROUND_ROBIN', is_active: true, created_at: nowIso(-30) })
+  // Events & Programs
+  const ev1 = { id: uuid(), name: 'Fashion Week', season: 'SS25', team_id: ids.team, created_at: nowIso(-120) }
+  const ev2 = { id: uuid(), name: 'Resort Showcase', season: '2025', team_id: ids.team, created_at: nowIso(-110) }
+  tables.events.push(ev1, ev2)
+  const pr1 = { id: uuid(), event_id: ev1.id, name: 'Designer Runway', created_at: nowIso(-119) }
+  const pr2 = { id: uuid(), event_id: ev1.id, name: 'Sponsor Platinum', created_at: nowIso(-118) }
+  const pr3 = { id: uuid(), event_id: ev2.id, name: 'Buyer Preview', created_at: nowIso(-109) }
+  tables.programs.push(pr1, pr2, pr3)
   // Leads
   const basePhones = ['9876543210','9123456789','9988776655','9801122334','9911223344','9900112233','9898989898','9797979797','9090909090','9000000001','9000000002','9000000003']
   basePhones.forEach((p, i) => {
@@ -97,6 +111,9 @@ export function seedIfNeeded() {
       team_id: demoUser.team_id,
       created_at
     })
+    if (i % 4 === 0) {
+      tables.lead_enrollments.push({ id: uuid(), lead_id: id, event_id: ev1.id, program_id: pr1.id, status: 'INTERESTED', created_at: created_at, updated_at: created_at })
+    }
     if (next) {
       tables.followups.push({ id: uuid(), lead_id: id, user_id: demoUser.id, due_at: next, priority: ['LOW','MEDIUM','HIGH'][i%3], remark: 'Reminder', status: 'OPEN', created_at })
     }

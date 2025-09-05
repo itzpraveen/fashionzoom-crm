@@ -62,29 +62,29 @@ export function LeadCard({ lead, role }: LeadCardProps) {
   })
   const sla = computeSLA({ status: lead.status, created_at: undefined, next_follow_up_at: lead.next_follow_up_at })
   return (
-    <div className="bg-surface border border-line rounded p-3 flex items-center gap-3">
+    <div className="card bg-surface p-3 flex items-center gap-3">
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <div className="font-medium truncate">{lead.full_name || '—'}</div>
+          <div className="font-medium truncate text-sm sm:text-base">{lead.full_name || '—'}</div>
           <BadgeScore score={score} />
           {lead.status === 'DNC' && <span className="text-xs text-danger ml-1">DNC</span>}
         </div>
         <div className="text-xs text-muted mt-0.5">{masked}</div>
-        <div className="text-xs text-muted mt-0.5">
+        <div className="text-xs text-muted mt-0.5 truncate">
           <span>{lead.city || '—'}</span>
           <span className="mx-2">•</span>
           <span>{lead.source}</span>
         </div>
         <div className="text-xs text-muted mt-0.5">Next: {lead.next_follow_up_at ? new Date(lead.next_follow_up_at).toLocaleString() : '—'}</div>
         <div className="text-xs mt-1">
-          <span className={`mr-2 px-1.5 py-0.5 rounded ${sla.status==='OVERDUE'?'bg-danger/20 text-danger':sla.status==='DUE_SOON'?'bg-warning/20 text-warning':'bg-white/10'}`} title={sla.hint}>{sla.status}</span>
+          <span className={`mr-2 px-1.5 py-0.5 rounded border border-line ${sla.status==='OVERDUE'?'bg-danger/15 text-danger':sla.status==='DUE_SOON'?'bg-warning/15 text-warning':'bg-black/5 text-fg/70 dark:bg-white/10 dark:text-white/90'}`} title={sla.hint}>{sla.status}</span>
           <span title={rec.reason}>Next best: {rec.label}</span>
         </div>
       </div>
       <div className="flex items-center gap-2">
         <a
           href={`tel:${lead.primary_phone}`}
-          className="touch-target rounded bg-white/10 px-3 py-2 text-sm flex items-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
+          className="touch-target rounded bg-white/10 px-3 py-2 text-xs sm:text-sm flex items-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
           aria-label={`Call ${masked}`}
         >
           <Phone size={16} aria-hidden="true" />
@@ -94,7 +94,7 @@ export function LeadCard({ lead, role }: LeadCardProps) {
           href={waLink(lead.primary_phone)}
           target="_blank"
           rel="noopener noreferrer"
-          className="touch-target rounded bg-white/10 px-3 py-2 text-sm flex items-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
+          className="touch-target rounded bg-white/10 px-3 py-2 text-xs sm:text-sm flex items-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
           aria-label={`WhatsApp ${masked}`}
         >
           <MessageCircle size={16} aria-hidden="true" />
@@ -102,7 +102,7 @@ export function LeadCard({ lead, role }: LeadCardProps) {
         </a>
         <button
           onClick={()=>router.push(`/leads/${lead.id}`)}
-          className="touch-target btn-primary text-sm flex items-center gap-1"
+          className="touch-target btn-primary text-xs sm:text-sm flex items-center gap-1"
           aria-label="Open lead"
         >
           <ExternalLink size={16} aria-hidden="true" />

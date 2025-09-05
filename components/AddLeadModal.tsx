@@ -1,6 +1,7 @@
 "use client"
 import { useState, useTransition } from 'react'
 import { createLead } from '@/actions/leads'
+import { EventProgramPicker } from './EventProgramPicker'
 
 type Props = { open: boolean; onClose: () => void }
 
@@ -9,6 +10,7 @@ export function AddLeadModal({ open, onClose }: Props) {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [showAdvanced, setShowAdvanced] = useState(false)
+  const [eventProgram, setEventProgram] = useState<{ event_id?: string; program_id?: string }>({})
 
   const [form, setForm] = useState({
     full_name: '',
@@ -52,6 +54,8 @@ export function AddLeadModal({ open, onClose }: Props) {
                 tags,
                 notes: form.notes || undefined,
                 consent: !!form.consent,
+                event_id: eventProgram.event_id,
+                program_id: eventProgram.program_id,
               })
               if ((res as any)?.ok) {
                 setSuccess('Lead created')
@@ -85,6 +89,10 @@ export function AddLeadModal({ open, onClose }: Props) {
                 {['Facebook','Instagram','Website','WalkIn','Referral','Other'].map(s => (<option key={s} value={s}>{s}</option>))}
               </select>
             </div>
+          </div>
+          <div className="space-y-1">
+            <div className="text-sm font-medium">Event & Program (optional)</div>
+            <EventProgramPicker value={eventProgram} onChange={setEventProgram} />
           </div>
           <button type="button" onClick={()=>setShowAdvanced(s=>!s)} className="text-xs underline">{showAdvanced ? 'Hide' : 'Show'} advanced fields</button>
           {showAdvanced && (
