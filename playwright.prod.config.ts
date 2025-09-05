@@ -4,14 +4,15 @@ export default defineConfig({
   testMatch: ['tests/**/*.spec.ts'],
   workers: 1,
   webServer: {
-    command: 'pnpm dev',
+    command: 'sh -c "pnpm build && pnpm start"',
     port: 3000,
-    timeout: 120 * 1000,
-    reuseExistingServer: !process.env.CI,
-    env: { E2E: '1', NEXT_PUBLIC_DEMO: '1', PLAYWRIGHT_DEV: '1', ...process.env },
+    timeout: 180 * 1000,
+    reuseExistingServer: false,
+    env: { E2E: '1', NEXT_PUBLIC_DEMO: '1', ...process.env },
   },
   use: {
     baseURL: 'http://localhost:3000',
     viewport: { width: 390, height: 844 },
   }
 })
+
