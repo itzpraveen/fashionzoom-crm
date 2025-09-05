@@ -17,6 +17,7 @@ export default function TopNav() {
   const pathname = usePathname()
   const router = useRouter()
   const [loggedIn, setLoggedIn] = useState<boolean>(false)
+  const isAuthRoute = pathname?.startsWith('/login') || pathname?.startsWith('/auth/')
   useEffect(() => {
     const supabase = createBrowserClient()
     supabase.auth.getUser().then((res: any) => setLoggedIn(!!res?.data?.user))
@@ -91,6 +92,7 @@ export default function TopNav() {
       {/* Mobile actions + menu */}
       <div className="ml-auto sm:hidden flex items-center gap-2">
         <ThemeToggle />
+        {loggedIn && !isAuthRoute && (
         <details className="relative">
           <summary className="list-none cursor-pointer rounded bg-white/10 px-3 py-2 inline-flex items-center gap-2">
             <MenuIcon size={16} aria-hidden="true" /> Menu
@@ -127,6 +129,7 @@ export default function TopNav() {
             </nav>
           </div>
         </details>
+        )}
       </div>
     </nav>
   )

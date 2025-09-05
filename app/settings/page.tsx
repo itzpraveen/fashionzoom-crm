@@ -8,8 +8,8 @@ export default function SettingsIndex() {
         <li><Link className="underline" href="/settings/templates">Templates</Link></li>
         <li><Link className="underline" href="/settings/assignment-rules">Assignment Rules</Link></li>
         <li><Link className="underline" href="/settings/teams">Teams</Link></li>
+        <li><Link className="underline" href="/settings/events">Events & Programs</Link></li>
       </ul>
     </div>
   )
 }
-
