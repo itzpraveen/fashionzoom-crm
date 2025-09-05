@@ -31,7 +31,7 @@ export default async function LeadsPage({
   // Build query
   let query = supabase
     .from('leads')
-    .select('id, full_name, primary_phone, city, source, status, score, next_follow_up_at, created_at', { count: 'exact' })
+    .select('id, full_name, primary_phone, city, source, status, score, next_follow_up_at, created_at, last_activity_at, notes, owner:profiles(full_name)', { count: 'exact' })
     .eq('owner_id', user.id)
     .eq('is_deleted', false)
     .range(offset, offset + PAGE_SIZE - 1)
