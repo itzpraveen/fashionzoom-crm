@@ -28,7 +28,7 @@ export const viewport = {
   colorScheme: 'light dark'
 }
 
-const themeInitScript = `(() => { try { const t = localStorage.getItem('fzcrm-theme'); if (t==='light'||t==='dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {} })();`
+const themeInitScript = `(() => { try { const t = localStorage.getItem('fzcrm-theme'); const root = document.documentElement; if (t==='light'||t==='dark') { root.setAttribute('data-theme', t); } else { root.setAttribute('data-theme', 'light'); } } catch (e) { document.documentElement.setAttribute('data-theme','light'); } })();`
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const enablePWA = process.env.NEXT_PUBLIC_ENABLE_PWA === '1'
@@ -38,9 +38,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         {/* Skip link for keyboard users */}
         <a href="#content" className="visually-hidden focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:bg-primary focus:text-white focus:px-3 focus:py-2 focus:rounded">Skip to content</a>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
-        <header className="sticky top-0 z-30 border-b border-white/10 bg-gradient-to-b from-black/10 to-transparent backdrop-blur">
+        <header className="sticky top-0 z-30 border-b border-white/10 bg-gradient-to-b from-black/5 to-transparent backdrop-blur">
           <TopNav />
-          <div className="mx-auto max-w-6xl px-4 pb-2 flex items-center justify-end sm:hidden gap-3">
+          <div className="mx-auto max-w-6xl px-4 pb-1 flex items-center justify-end sm:hidden gap-2">
             <AuthNav />
             <ThemeToggle />
           </div>

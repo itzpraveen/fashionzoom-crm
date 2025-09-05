@@ -5,10 +5,10 @@ import { Sun, Moon, Monitor } from 'lucide-react'
 type Theme = 'light' | 'dark' | 'system'
 
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme>('system')
+  const [theme, setTheme] = useState<Theme>('light')
 
   useEffect(() => {
-    const stored = (localStorage.getItem('fzcrm-theme') as Theme | null) || 'system'
+    const stored = (localStorage.getItem('fzcrm-theme') as Theme | null) || 'light'
     setTheme(stored)
     applyTheme(stored)
   }, [])

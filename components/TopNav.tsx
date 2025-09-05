@@ -15,7 +15,7 @@ const items: Item[] = [
 export default function TopNav() {
   const pathname = usePathname()
   return (
-    <nav aria-label="Top" className="mx-auto max-w-6xl px-4 py-3 flex items-center gap-4 text-sm">
+    <nav aria-label="Top" className="mx-auto max-w-6xl px-4 py-2 flex items-center gap-3 text-sm">
       <Link href="/dashboard" className="font-semibold tracking-tight flex items-center gap-2">
         <span className="inline-flex h-6 w-6 items-center justify-center rounded bg-primary/20 text-primary font-bold">FZ</span>
         FashionZoom CRM
@@ -39,4 +39,3 @@ export default function TopNav() {
     </nav>
   )
 }
-
