@@ -4,7 +4,8 @@ import { createServerSupabase } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
 const TemplateSchema = z.object({
-  channel: z.enum(['WhatsApp','SMS','Email']),
+  // Accept friendly case but normalize to DB enum (uppercase)
+  channel: z.enum(['WhatsApp','SMS','Email','WHATSAPP','EMAIL']).transform((c) => (c.toUpperCase() as 'WHATSAPP'|'SMS'|'EMAIL')),
   name: z.string().min(2),
   body: z.string().min(2)
 })
@@ -22,7 +23,7 @@ async function requireManagerOrAdmin() {
 export async function createTemplate(formData: FormData) {
   const supabase = await requireManagerOrAdmin()
   const data = TemplateSchema.parse({
-    channel: String(formData.get('channel') || 'WhatsApp') as any,
+    channel: String(formData.get('channel') || 'WHATSAPP') as any,
     name: String(formData.get('name') || ''),
     body: String(formData.get('body') || '')
   })
@@ -39,4 +40,3 @@ export async function deleteTemplate(formData: FormData) {
   if (error) throw error
   revalidatePath('/settings/templates')
 }
-

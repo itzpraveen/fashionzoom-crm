@@ -21,7 +21,11 @@ export default async function TemplatesPage() {
             <div className="sm:col-span-1">
               <label className="block text-xs text-muted">Channel</label>
               <select name="channel" className="w-full rounded bg-surface-2 border border-line px-3 py-2">
-                {['WhatsApp','SMS','Email'].map(c => (<option key={c} value={c}>{c}</option>))}
+                {[
+                  { value: 'WHATSAPP', label: 'WhatsApp' },
+                  { value: 'SMS', label: 'SMS' },
+                  { value: 'EMAIL', label: 'Email' }
+                ].map(c => (<option key={c.value} value={c.value}>{c.label}</option>))}
               </select>
             </div>
             <div className="sm:col-span-2">
