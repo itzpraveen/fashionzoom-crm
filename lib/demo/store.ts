@@ -13,6 +13,11 @@ function uuid() {
   })
 }
 
+function stableUuidFromIndex(i: number) {
+  const hex = Math.max(1, i).toString(16).padStart(12, '0')
+  return `00000000-0000-4000-8000-${hex}`
+}
+
 export type DemoUser = {
   id: string
   email: string
@@ -94,7 +99,7 @@ export function seedIfNeeded() {
   // Leads
   const basePhones = ['9876543210','9123456789','9988776655','9801122334','9911223344','9900112233','9898989898','9797979797','9090909090','9000000001','9000000002','9000000003']
   basePhones.forEach((p, i) => {
-    const id = uuid()
+    const id = stableUuidFromIndex(i + 1)
     const created_at = nowIso(-120 + i * 5)
     const next = i % 3 === 0 ? nowIso(-30) : i % 3 === 1 ? nowIso(60) : null
     tables.leads.push({

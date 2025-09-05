@@ -2,7 +2,7 @@
 // It supports a minimal subset of: auth.getUser/exchangeCodeForSession/signOut,
 // from(...).select/eq/lt/gte/is/order/limit/single/maybeSingle,
 // insert(...).select().single(), update(...).eq(...), upsert(...).select().
-import { demoUser, getTable, insertRows, isLoggedIn, setLoggedIn, updateRows, upsertRow } from '../demo/store'
+import { demoUser, getTable, insertRows, isLoggedIn, setLoggedIn, updateRows, upsertRow, removeRows } from '../demo/store'
 
 // Safe UUID generator that works in both browser and Node without `node:crypto`
 function uuid() {

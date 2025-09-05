@@ -2,6 +2,7 @@ import { defineConfig } from '@playwright/test'
 
 export default defineConfig({
   testMatch: ['tests/**/*.spec.ts'],
+  workers: 1,
   webServer: {
     command: 'pnpm dev',
     port: 3000,
