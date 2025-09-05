@@ -197,9 +197,14 @@ export async function exportLeads(input: {
     new Date(lead.created_at).toLocaleDateString()
   ])
   
+  const escapeCsvCell = (val: any) => {
+    const s = val == null ? '' : String(val)
+    const escaped = s.replace(/"/g, '""')
+    return `"${escaped}"`
+  }
   const csv = [
     headers.join(','),
-    ...rows.map((row: any[]) => row.map((cell: any) => `"${cell}"`).join(','))
+    ...rows.map((row: any[]) => row.map(escapeCsvCell).join(','))
   ].join('\n')
   
   return {

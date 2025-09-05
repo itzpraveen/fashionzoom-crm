@@ -13,13 +13,37 @@ export function LeadsFilters({ status, search, due }: { status?: string; search?
   const [programId, setProgramId] = React.useState<string | undefined>(() => params?.get('program_id') || undefined)
 
   React.useEffect(() => {
+    // Load events list once on mount
     import('@/lib/supabase/client-with-retry').then(({ createBrowserClient }) => {
       const sb = createBrowserClient()
-      sb.from('events').select('*').order('created_at', { ascending: false }).then(({ data }) => setEvents((data as any) || []))
-      const ev = params?.get('event_id')
-      if (ev) sb.from('programs').select('*').eq('event_id', ev).order('created_at', { ascending: true }).then(({ data }) => setPrograms((data as any) || []))
+      sb
+        .from('events')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .then(({ data }) => setEvents((data as any) || []))
     })
   }, [])
+
+  // Keep event/program selection in sync with URL params and refresh programs when event changes
+  const eventIdParam = params?.get('event_id') || undefined
+  const programIdParam = params?.get('program_id') || undefined
+  React.useEffect(() => {
+    setEventId(eventIdParam)
+    setProgramId(programIdParam)
+    if (!eventIdParam) {
+      setPrograms([])
+      return
+    }
+    import('@/lib/supabase/client-with-retry').then(({ createBrowserClient }) => {
+      const sb = createBrowserClient()
+      sb
+        .from('programs')
+        .select('*')
+        .eq('event_id', eventIdParam)
+        .order('created_at', { ascending: true })
+        .then(({ data }) => setPrograms((data as any) || []))
+    })
+  }, [eventIdParam, programIdParam])
 
   const buildUrl = useCallback((next: Record<string, string | undefined>) => {
     const p = new URLSearchParams(params?.toString())

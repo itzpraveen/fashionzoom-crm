@@ -7,7 +7,7 @@ export default defineConfig({
     port: 3000,
     timeout: 120 * 1000,
     reuseExistingServer: !process.env.CI,
-    env: { E2E: '1', ...process.env },
+    env: { E2E: '1', NEXT_PUBLIC_DEMO: '1', ...process.env },
   },
   use: {
     baseURL: 'http://localhost:3000',

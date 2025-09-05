@@ -107,6 +107,7 @@ export function seedIfNeeded() {
       last_activity_at: created_at,
       primary_phone: p,
       status: 'NEW',
+      is_deleted: false,
       owner_id: demoUser.id,
       team_id: demoUser.team_id,
       created_at
@@ -115,7 +116,7 @@ export function seedIfNeeded() {
       tables.lead_enrollments.push({ id: uuid(), lead_id: id, event_id: ev1.id, program_id: pr1.id, status: 'INTERESTED', created_at: created_at, updated_at: created_at })
     }
     if (next) {
-      tables.followups.push({ id: uuid(), lead_id: id, user_id: demoUser.id, due_at: next, priority: ['LOW','MEDIUM','HIGH'][i%3], remark: 'Reminder', status: 'OPEN', created_at })
+      tables.followups.push({ id: uuid(), lead_id: id, user_id: demoUser.id, due_at: next, priority: ['LOW','MEDIUM','HIGH'][i%3], remark: 'Reminder', status: 'PENDING', created_at })
     }
   })
 }
