@@ -39,6 +39,7 @@ export default function FooterNav() {
                 href={href}
                 aria-current={active ? 'page' : undefined}
                 className={`relative flex flex-col items-center justify-center gap-1 py-2.5 rounded touch-target ${active ? 'text-primary' : 'text-fg/80 hover:text-fg'} focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70`}
+                prefetch={false}
               >
                 {active && <span className="absolute top-0 h-0.5 w-8 rounded-full bg-primary/80" />}
                 <Icon size={22} aria-hidden="true" />
