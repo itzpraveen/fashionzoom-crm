@@ -6,6 +6,8 @@ import { AddLeadButton } from '@/components/AddLeadButton'
 import { Pagination } from '@/components/Pagination'
 import { redirect } from 'next/navigation'
 import { LeadsFilters } from '@/components/LeadsFilters'
+import LeadsTable from '@/components/LeadsTable'
+import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
 
@@ -24,11 +26,12 @@ export default async function LeadsPage({
   const page = Number(searchParams.page) || 1
   const offset = (page - 1) * PAGE_SIZE
   const role = (profile?.role ?? 'TELECALLER') as 'TELECALLER'|'MANAGER'|'ADMIN'
+  const view = (searchParams as any).view || (role !== 'TELECALLER' ? 'table' : 'cards')
   
   // Build query
   let query = supabase
     .from('leads')
-    .select('*', { count: 'exact' })
+    .select('id, full_name, primary_phone, city, source, status, score, next_follow_up_at, created_at', { count: 'exact' })
     .eq('owner_id', user.id)
     .eq('is_deleted', false)
     .range(offset, offset + PAGE_SIZE - 1)
@@ -61,16 +64,22 @@ export default async function LeadsPage({
   
   const totalPages = Math.ceil((count || 0) / PAGE_SIZE)
   
-  // Categorize leads
-  const overdue = leads?.filter((l: any) => l.next_follow_up_at && l.next_follow_up_at < now) || []
-  const due = leads?.filter((l: any) => l.next_follow_up_at && l.next_follow_up_at >= now) || []
-  const fresh = leads?.filter((l: any) => !l.next_follow_up_at) || []
+  // Categorize leads (cards view)
+  const overdue = (leads as any[])?.filter((l: any) => l.next_follow_up_at && l.next_follow_up_at < now) || []
+  const due = (leads as any[])?.filter((l: any) => l.next_follow_up_at && l.next_follow_up_at >= now) || []
+  const fresh = (leads as any[])?.filter((l: any) => !l.next_follow_up_at) || []
 
   return (
     <div className="space-y-4">
-      {/* Add Lead CTA and Filters */}
+      {/* Header: actions + view toggle + filters */}
       <div className="flex items-center justify-between gap-4">
-        <AddLeadButton />
+        <div className="flex items-center gap-2">
+          <AddLeadButton />
+          <div className="hidden sm:flex items-center gap-1 text-xs border border-white/10 rounded-md overflow-hidden">
+            <Link href={{ pathname: '/leads', query: { ...searchParams, view: 'cards' } }} className={`px-2 py-1 ${view==='cards'?'bg-white/10':''}`}>Cards</Link>
+            <Link href={{ pathname: '/leads', query: { ...searchParams, view: 'table' } }} className={`px-2 py-1 ${view==='table'?'bg-white/10':''}`}>Table</Link>
+          </div>
+        </div>
         <LeadsFilters status={searchParams.status} search={searchParams.search} due={searchParams.due} />
       </div>
       
@@ -79,6 +88,8 @@ export default async function LeadsPage({
           title="No leads found" 
           hint={searchParams.search || searchParams.status ? "Try adjusting your filters" : "Add your first lead to get started"} 
         />
+      ) : view === 'table' ? (
+        <LeadsTable leads={leads as any} role={role} />
       ) : (
         <>
           {overdue.length > 0 && (
