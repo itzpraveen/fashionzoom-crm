@@ -34,7 +34,13 @@ export default function LeadsTable({ leads, role }: { leads: LeadRow[]; role: 'T
     return n.replace(/(\d{3})\d+(\d{2})/, (_, a, z) => `${a}•••${z}`)
   }
   return (
-    <DataTable columns={["Name","Phone","City","Source","Status","Score","Next Best","SLA","Next","Last Contacted","Disposition","Owner","Remarks","Actions"]}>
+    <DataTable
+      columns={["Name","Phone","City","Source","Status","Score","Next Best","SLA","Next","Last Contacted","Disposition","Owner","Remarks","Actions"]}
+      colClasses={[
+        'w-48', 'w-32', 'w-28', 'w-28', 'w-24', 'w-16', 'w-40', 'w-24', 'w-40', 'w-40', 'w-28', 'w-32', 'w-[18rem]', 'w-[20rem]'
+      ]}
+      sticky
+    >
       {leads.map((l) => {
         const phoneDisp = mask(l.primary_phone)
         const wa = waLink(l.primary_phone)
@@ -59,7 +65,7 @@ export default function LeadsTable({ leads, role }: { leads: LeadRow[]; role: 'T
         const lastAct = l.activities && l.activities[0]
         const remark = (l.followups && l.followups[0]?.remark) || l.notes || null
         return (
-          <tr key={l.id} className="border-t border-white/10">
+          <tr key={l.id} className="border-t border-line">
             <td className="py-2 pr-4">
               <Link href={`/leads/${l.id}`} className="hover:underline">{l.full_name || '—'}</Link>
             </td>
@@ -72,7 +78,7 @@ export default function LeadsTable({ leads, role }: { leads: LeadRow[]; role: 'T
               {rec.link ? <a href={rec.link} target="_blank" rel="noreferrer" className="underline">{rec.label}</a> : rec.label}
             </td>
             <td className="py-2 pr-4">
-              <span className={`px-2 py-0.5 rounded text-xs ${sla.status==='OVERDUE'?'bg-danger/20 text-danger':sla.status==='DUE_SOON'?'bg-warning/20 text-warning':'bg-white/10'}`} title={sla.hint}>{sla.status}</span>
+              <span className={`px-2 py-0.5 rounded text-xs border border-line ${sla.status==='OVERDUE'?'bg-danger/15 text-danger':sla.status==='DUE_SOON'?'bg-warning/15 text-warning':'bg-black/5 text-fg/70 dark:bg-white/10 dark:text-white/90'}`} title={sla.hint}>{sla.status}</span>
             </td>
             <td className="py-2 pr-4 whitespace-nowrap">{l.next_follow_up_at ? new Date(l.next_follow_up_at).toLocaleString() : '—'}</td>
             <td className="py-2 pr-4 whitespace-nowrap" title={lastAct ? `${lastAct.type}${lastAct.outcome ? ' • ' + lastAct.outcome : ''}${lastAct.message ? '\n' + lastAct.message : ''}` : ''}>
@@ -82,7 +88,7 @@ export default function LeadsTable({ leads, role }: { leads: LeadRow[]; role: 'T
             <td className="py-2 pr-4">{l.owner?.full_name || '—'}</td>
             <td className="py-2 pr-4 max-w-[16rem] truncate" title={remark || ''}>{remark || '—'}</td>
             <td className="py-2 pr-4">
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <a href={`tel:${normalizePhone(l.primary_phone) || l.primary_phone}`} className="px-2 py-1 rounded bg-white/10 text-xs">Call</a>
                 <a href={wa} target="_blank" rel="noopener noreferrer" className="px-2 py-1 rounded bg-white/10 text-xs">WA</a>
                 <Link href={`/leads/${l.id}`} className="px-2 py-1 rounded bg-primary text-white text-xs">Open</Link>

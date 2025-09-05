@@ -55,47 +55,93 @@ alter table public.events enable row level security;
 alter table public.programs enable row level security;
 alter table public.lead_enrollments enable row level security;
 
--- Events/programs visible within team; admins see all
-create policy if not exists events_team_read on public.events
-for select using ( public.is_admin() or public.same_team(team_id) );
-create policy if not exists events_team_write on public.events
-for all using ( public.is_admin() or public.same_team(team_id) )
-with check ( public.is_admin() or public.same_team(team_id) );
+-- Events policies (guarded create to avoid redefinition errors on re-run)
+do $$ begin
+  if not exists (
+    select 1 from pg_policies where schemaname='public' and tablename='events' and policyname='events_team_read'
+  ) then
+    create policy events_team_read on public.events
+      for select using ( public.is_admin() or public.same_team(team_id) );
+  end if;
+end $$;
 
-create policy if not exists programs_team_read on public.programs
-for select using (
-  exists(select 1 from public.events e where e.id = event_id and (public.is_admin() or public.same_team(e.team_id)))
-);
-create policy if not exists programs_team_write on public.programs
-for all using (
-  exists(select 1 from public.events e where e.id = event_id and (public.is_admin() or public.same_team(e.team_id)))
-)
-with check (
-  exists(select 1 from public.events e where e.id = event_id and (public.is_admin() or public.same_team(e.team_id)))
-);
+do $$ begin
+  if not exists (
+    select 1 from pg_policies where schemaname='public' and tablename='events' and policyname='events_team_write'
+  ) then
+    create policy events_team_write on public.events
+      for all using ( public.is_admin() or public.same_team(team_id) )
+      with check ( public.is_admin() or public.same_team(team_id) );
+  end if;
+end $$;
+
+-- Programs policies
+do $$ begin
+  if not exists (
+    select 1 from pg_policies where schemaname='public' and tablename='programs' and policyname='programs_team_read'
+  ) then
+    create policy programs_team_read on public.programs
+      for select using (
+        exists(select 1 from public.events e where e.id = event_id and (public.is_admin() or public.same_team(e.team_id)))
+      );
+  end if;
+end $$;
+
+do $$ begin
+  if not exists (
+    select 1 from pg_policies where schemaname='public' and tablename='programs' and policyname='programs_team_write'
+  ) then
+    create policy programs_team_write on public.programs
+      for all using (
+        exists(select 1 from public.events e where e.id = event_id and (public.is_admin() or public.same_team(e.team_id)))
+      )
+      with check (
+        exists(select 1 from public.events e where e.id = event_id and (public.is_admin() or public.same_team(e.team_id)))
+      );
+  end if;
+end $$;
 
 -- Lead enrollments follow lead visibility (owner/team/admin)
-create policy if not exists enrollments_rw_by_lead_scope on public.lead_enrollments
-for select using (
-  exists (select 1 from public.leads l where l.id = lead_id and (
-    l.owner_id = auth.uid() or public.is_admin() or (public.is_manager() and public.same_team(l.team_id))
-  ))
-);
-create policy if not exists enrollments_insert_by_lead_scope on public.lead_enrollments
-for insert with check (
-  exists (select 1 from public.leads l where l.id = lead_id and (
-    l.owner_id = auth.uid() or public.is_admin() or (public.is_manager() and public.same_team(l.team_id))
-  ))
-);
-create policy if not exists enrollments_update_by_lead_scope on public.lead_enrollments
-for update using (
-  exists (select 1 from public.leads l where l.id = lead_id and (
-    l.owner_id = auth.uid() or public.is_admin() or (public.is_manager() and public.same_team(l.team_id))
-  ))
-)
-with check (
-  exists (select 1 from public.leads l where l.id = lead_id and (
-    l.owner_id = auth.uid() or public.is_admin() or (public.is_manager() and public.same_team(l.team_id))
-  ))
-);
+do $$ begin
+  if not exists (
+    select 1 from pg_policies where schemaname='public' and tablename='lead_enrollments' and policyname='enrollments_rw_by_lead_scope'
+  ) then
+    create policy enrollments_rw_by_lead_scope on public.lead_enrollments
+      for select using (
+        exists (select 1 from public.leads l where l.id = lead_id and (
+          l.owner_id = auth.uid() or public.is_admin() or (public.is_manager() and public.same_team(l.team_id))
+        ))
+      );
+  end if;
+end $$;
 
+do $$ begin
+  if not exists (
+    select 1 from pg_policies where schemaname='public' and tablename='lead_enrollments' and policyname='enrollments_insert_by_lead_scope'
+  ) then
+    create policy enrollments_insert_by_lead_scope on public.lead_enrollments
+      for insert with check (
+        exists (select 1 from public.leads l where l.id = lead_id and (
+          l.owner_id = auth.uid() or public.is_admin() or (public.is_manager() and public.same_team(l.team_id))
+        ))
+      );
+  end if;
+end $$;
+
+do $$ begin
+  if not exists (
+    select 1 from pg_policies where schemaname='public' and tablename='lead_enrollments' and policyname='enrollments_update_by_lead_scope'
+  ) then
+    create policy enrollments_update_by_lead_scope on public.lead_enrollments
+      for update using (
+        exists (select 1 from public.leads l where l.id = lead_id and (
+          l.owner_id = auth.uid() or public.is_admin() or (public.is_manager() and public.same_team(l.team_id))
+        ))
+      )
+      with check (
+        exists (select 1 from public.leads l where l.id = lead_id and (
+          l.owner_id = auth.uid() or public.is_admin() or (public.is_manager() and public.same_team(l.team_id))
+        ))
+      );
+  end if;
+end $$;
