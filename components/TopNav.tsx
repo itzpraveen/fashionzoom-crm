@@ -17,8 +17,12 @@ export default function TopNav() {
   return (
     <nav aria-label="Top" className="mx-auto max-w-6xl px-4 py-2 flex items-center gap-3 text-sm">
       <Link href="/dashboard" className="font-semibold tracking-tight flex items-center gap-2">
-        <span className="inline-flex h-6 w-6 items-center justify-center rounded bg-primary/20 text-primary font-bold">FZ</span>
-        FashionZoom CRM
+        {/* Show themed logo if available; fallback to badge */}
+        <picture className="inline-flex h-6 w-auto">
+          <source srcSet="/brand/logo-dark.png" media="(prefers-color-scheme: dark)" />
+          <img src="/brand/logo-light.png" alt="FashionZoom CRM" className="h-6 w-auto" onError={(e)=>{ (e.currentTarget as HTMLImageElement).style.display='none' }} />
+        </picture>
+        <span className="hidden sm:inline">FashionZoom CRM</span>
       </Link>
       <div className="ml-auto hidden sm:flex items-center gap-3">
         {items.map(({ href, label }) => {

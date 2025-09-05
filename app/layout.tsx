@@ -14,9 +14,9 @@ export const metadata = {
   description: 'Lead capture, calling & WhatsApp follow-ups',
   manifest: '/manifest.json',
   icons: {
-    icon: '/icons/icon-192.svg',
-    shortcut: '/icons/icon-192.svg',
-    apple: '/icons/icon-192.svg'
+    icon: '/brand/logo-light.png',
+    shortcut: '/brand/logo-light.png',
+    apple: '/brand/logo-light.png'
   }
 }
 
