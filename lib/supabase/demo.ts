@@ -43,6 +43,7 @@ class SelectBuilder<T extends Row> {
   constructor(private table: keyof ReturnType<typeof tablesMap>) {}
   select(_columns?: string, opts?: { count?: 'exact'|'planned'|'estimated' }) { this.wantCount = opts?.count === 'exact'; return this }
   eq<K extends keyof T & string>(k: K, v: any) { this.preds.push((r:any)=> String(r[k])===String(v)); return this }
+  in<K extends keyof T & string>(k: K, arr: any[]) { const set = new Set((arr||[]).map(String)); this.preds.push((r:any)=> set.has(String(r[k]))); return this }
   lt<K extends keyof T & string>(k: K, v: any) { const vv = cmpVal(v); this.preds.push((r:any)=> cmpVal(r[k]) < vv); return this }
   gte<K extends keyof T & string>(k: K, v: any) { const vv = cmpVal(v); this.preds.push((r:any)=> cmpVal(r[k]) >= vv); return this }
   is<K extends keyof T & string>(k: K, v: any) { this.preds.push((r:any)=> r[k] === v); return this }
@@ -106,6 +107,16 @@ class UpdateBuilder<T extends Row> {
   then(resolve: (v:any)=>void) {
     const count = updateRows(this.table as any, this.filter as any, this.patch as any)
     resolve({ data: { count }, error: null as any })
+  }
+}
+
+class DeleteBuilder<T extends Row> {
+  private filter: (r: T) => boolean = () => false
+  constructor(private table: keyof ReturnType<typeof tablesMap>) {}
+  eq<K extends keyof T & string>(k: K, v: any) { this.filter = (r:any)=> String(r[k])===String(v); return this }
+  then(resolve: (v:any)=>void) {
+    removeRows(this.table as any, this.filter as any)
+    resolve({ data: null, error: null as any })
   }
 }
 
@@ -179,6 +190,8 @@ export function createDemoSupabase() {
           }
           return new UpsertBuilder<T>(table, out as any)
         }
+        ,
+        delete: () => new DeleteBuilder<T>(table)
       }
     }
   }
