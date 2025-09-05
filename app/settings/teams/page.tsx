@@ -9,7 +9,17 @@ export default async function TeamsSettingsPage() {
   const supabase = createServerSupabase()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
-  const { data: me } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  const { data: me } = await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle()
+  // If profile is missing (common if callback bootstrap failed), show a friendly message
+  if (!me) {
+    return (
+      <div className="space-y-2">
+        <h1 className="text-xl font-semibold">Teams</h1>
+        <p className="text-sm text-muted">Your profile isn’t initialized yet. Please sign out and sign back in to complete setup.</p>
+        <a href="/logout" className="btn-primary inline-block px-3 py-2 rounded">Logout</a>
+      </div>
+    )
+  }
   if ((me?.role ?? 'TELECALLER') !== 'ADMIN') return <div className="text-sm">403 — Admins only.</div>
 
   const { data: teams } = await supabase.from('teams').select('*').order('created_at', { ascending: true })

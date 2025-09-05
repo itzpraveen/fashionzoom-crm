@@ -58,6 +58,8 @@ export default function TopNav() {
               <Link className="px-2 py-1 rounded hover:bg-white/10" href="/settings/templates" prefetch>Templates</Link>
               <Link className="px-2 py-1 rounded hover:bg-white/10" href="/import" prefetch>Import</Link>
               <Link className="px-2 py-1 rounded hover:bg-white/10" href="/settings/assignment-rules" prefetch>Assignment Rules</Link>
+              <div className="border-t border-white/10 my-1" />
+              <Link className="px-2 py-1 rounded hover:bg-white/10" href="/logout" prefetch>Logout</Link>
             </nav>
           </div>
         </details>
@@ -77,6 +79,8 @@ export default function TopNav() {
                 <Link className="px-2 py-1 rounded hover:bg-white/10" href="/settings/templates" prefetch>Templates</Link>
                 <Link className="px-2 py-1 rounded hover:bg-white/10" href="/import" prefetch>Import</Link>
                 <Link className="px-2 py-1 rounded hover:bg-white/10" href="/settings/assignment-rules" prefetch>Assignment Rules</Link>
+                <div className="border-t border-white/10 my-1" />
+                <Link className="px-2 py-1 rounded hover:bg-white/10" href="/logout" prefetch>Logout</Link>
               </div>
             </details>
           </nav>
