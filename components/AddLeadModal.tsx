@@ -39,7 +39,7 @@ export function AddLeadModal({ open, onClose }: Props) {
           start(async () => {
             try {
               const tags = form.tags.split(',').map(t => t.trim()).filter(Boolean)
-              await createLead({
+              const res = await createLead({
                 full_name: form.full_name || undefined,
                 primary_phone: form.primary_phone,
                 alt_phone: form.alt_phone || undefined,
@@ -53,8 +53,12 @@ export function AddLeadModal({ open, onClose }: Props) {
                 notes: form.notes || undefined,
                 consent: !!form.consent,
               })
-              setSuccess('Lead created')
-              setTimeout(() => { onClose(); }, 600)
+              if ((res as any)?.ok) {
+                setSuccess('Lead created')
+                setTimeout(() => { onClose(); }, 600)
+              } else {
+                setError((res as any)?.error || 'Failed to create lead')
+              }
             } catch (e: any) {
               setError(e.message || 'Failed to create lead')
             }

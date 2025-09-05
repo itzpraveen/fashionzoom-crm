@@ -153,7 +153,7 @@ export const createLead = async (input: {
   tags?: string[]
   notes?: string
   consent?: boolean
-}) => {
+}): Promise<{ ok: true } | { ok: false; error: string }> => {
   const schema = z.object({
     full_name: z.string().optional(),
     primary_phone: z.string().min(5),
@@ -168,94 +168,94 @@ export const createLead = async (input: {
     notes: z.string().optional(),
     consent: z.boolean().optional()
   })
-  const data = schema.parse(input)
-  const supabase = createServerSupabase()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Unauthorized')
-  limit(user.id)
+  try {
+    const data = schema.parse(input)
+    const supabase = createServerSupabase()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { ok: false, error: 'Unauthorized' }
+    limit(user.id)
 
-  // Demo mode: write to in-memory store
-  if (process.env.NEXT_PUBLIC_DEMO === '1') {
-    const { insertRows } = await import('@/lib/demo/store')
-    const id = crypto.randomUUID?.() || Math.random().toString(36).slice(2)
+    // Demo mode: write to in-memory store
+    if (process.env.NEXT_PUBLIC_DEMO === '1') {
+      const { insertRows } = await import('@/lib/demo/store')
+      const id = crypto.randomUUID?.() || Math.random().toString(36).slice(2)
+      const payload: any = {
+        id,
+        ...data,
+        source: data.source || 'Other',
+        owner_id: user.id,
+        team_id: null,
+        status: 'NEW',
+        score: 55,
+        created_at: new Date().toISOString()
+      }
+      insertRows('leads', [payload])
+      return { ok: true }
+    }
+
+    // derive team from profile
+    const { data: profile } = await supabase.from('profiles').select('team_id').eq('id', user.id).single()
+
     const payload: any = {
-      id,
       ...data,
       source: data.source || 'Other',
       owner_id: user.id,
-      team_id: null,
-      status: 'NEW',
-      score: 55,
-      created_at: new Date().toISOString()
+      team_id: profile?.team_id || null
     }
-    insertRows('leads', [payload])
-    return { ok: true }
-  }
 
-  // derive team from profile
-  const { data: profile } = await supabase.from('profiles').select('team_id').eq('id', user.id).single()
+    const attemptAnon = await supabase.from('leads').insert(payload)
+    if (!attemptAnon.error) return { ok: true }
 
-  const payload: any = {
-    ...data,
-    source: data.source || 'Other',
-    owner_id: user.id,
-    team_id: profile?.team_id || null
-  }
-
-  const attemptAnon = await supabase.from('leads').insert(payload)
-  if (!attemptAnon.error) return { ok: true }
-
-  const err = attemptAnon.error
-  const msg = (err.message || '').toLowerCase()
-  if (msg.includes('duplicate') || msg.includes('unique')) {
-    throw new Error('A lead with this phone already exists.')
-  }
-
-  // Secure fallback path using service role: ensure profile exists, then insert lead
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!url || !serviceKey) {
-    // RLS/permission or FK may have caused this, but no fallback available
-    if (msg.includes('row level security') || msg.includes('rls') || err.code === '42501') {
-      throw new Error('Permission denied. Contact admin to assign you to a team.')
+    const err = attemptAnon.error
+    const msg = (err.message || '').toLowerCase()
+    if (msg.includes('duplicate') || msg.includes('unique')) {
+      return { ok: false, error: 'A lead with this phone already exists.' }
     }
-    throw new Error('Failed to create lead. Please try again.')
-  }
 
-  const headers = {
-    apikey: serviceKey,
-    Authorization: `Bearer ${serviceKey}`,
-    'Content-Type': 'application/json',
-  }
+    // Secure fallback path using service role: ensure profile exists, then insert lead
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    if (!url || !serviceKey) {
+      if (msg.includes('row level security') || msg.includes('rls') || err.code === '42501') {
+        return { ok: false, error: 'Permission denied. Contact admin to assign you to a team.' }
+      }
+      return { ok: false, error: 'Failed to create lead. Please try again.' }
+    }
 
-  // Ensure profile exists to satisfy FK constraint on owner_id
-  await fetch(`${url}/rest/v1/profiles`, {
-    method: 'POST',
-    headers: { ...headers, Prefer: 'resolution=merge-duplicates,return=minimal' },
-    body: JSON.stringify({
-      id: user.id,
-      full_name: (user.user_metadata as any)?.name ?? null,
-      role: 'TELECALLER',
-      team_id: profile?.team_id ?? null
-    }),
-  })
+    const headers = {
+      apikey: serviceKey,
+      Authorization: `Bearer ${serviceKey}`,
+      'Content-Type': 'application/json',
+    }
 
-  // Attempt privileged insert
-  const resp = await fetch(`${url}/rest/v1/leads`, {
-    method: 'POST',
-    headers: { ...headers, Prefer: 'return=minimal' },
-    body: JSON.stringify(payload),
-  })
-  if (!resp.ok) {
-    // Try one more time without team_id if FK or team policy interferes
-    const resp2 = await fetch(`${url}/rest/v1/leads`, {
+    await fetch(`${url}/rest/v1/profiles`, {
+      method: 'POST',
+      headers: { ...headers, Prefer: 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify({
+        id: user.id,
+        full_name: (user.user_metadata as any)?.name ?? null,
+        role: 'TELECALLER',
+        team_id: profile?.team_id ?? null
+      }),
+    })
+
+    const resp = await fetch(`${url}/rest/v1/leads`, {
       method: 'POST',
       headers: { ...headers, Prefer: 'return=minimal' },
-      body: JSON.stringify({ ...payload, team_id: null }),
+      body: JSON.stringify(payload),
     })
-    if (!resp2.ok) {
-      throw new Error('Failed to create lead. Please contact admin.')
+    if (!resp.ok) {
+      const resp2 = await fetch(`${url}/rest/v1/leads`, {
+        method: 'POST',
+        headers: { ...headers, Prefer: 'return=minimal' },
+        body: JSON.stringify({ ...payload, team_id: null }),
+      })
+      if (!resp2.ok) {
+        return { ok: false, error: 'Failed to create lead. Please contact admin.' }
+      }
     }
+    return { ok: true }
+  } catch (e: any) {
+    return { ok: false, error: e?.message || 'Unable to create lead' }
   }
-  return { ok: true }
 }
