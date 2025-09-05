@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import Link from 'next/link'
 // PWA handling is feature-flagged for dev convenience
 import SWUnregister from './sw-unregister'
+import SWRegister from './sw-register'
 import FooterNav from '@/components/FooterNav'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import AuthNav from '@/components/AuthNav'
@@ -62,8 +63,8 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <main id="content" role="main" className="mx-auto max-w-6xl px-4 py-4 pb-20 sm:pb-6">
           {children}
         </main>
-        {/* Ensure any previously installed SW is removed when PWA is disabled */}
-        {!enablePWA && <SWUnregister />}
+        {/* Register SW if enabled; otherwise actively unregister */}
+        {enablePWA ? <SWRegister /> : <SWUnregister />}
         {/* Bottom navigation for mobile */}
         <FooterNav />
       </body>

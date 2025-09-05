@@ -80,30 +80,29 @@ Note: E2E tests expect the dev server running and a signed-in session or seeded 
 - Manifest icons use SVG; replace with your brand icons any time under `public/icons/`.
 
 ### PWA toggle
-- `NEXT_PUBLIC_ENABLE_PWA=1` registers `public/sw.js` in onboarding and skips the auto‑unregister in the root layout.
+- `NEXT_PUBLIC_ENABLE_PWA=1` registers `public/sw.js` globally via the root layout.
 - `NEXT_PUBLIC_ENABLE_PWA=0` (default) prevents SW registration and proactively unregisters any prior workers and caches.
 
 ## Housekeeping / Cleanup
 - Middleware auth gating removed to avoid redirect loops; routes enforce auth server‑side.
 - Debug routes and unused utilities removed (`/auth/status`, offline queue, Toast component, legacy SW register).
 - Login is a server component that redirects if already authenticated; the client form is in `components/LoginForm.tsx`.
+- Onboarding route now just redirects to `/leads`; team setup and other onboarding tasks can be managed later from the Admin panel (`/settings/teams`).
 
 ## Auth Setup (Supabase)
 
 - Site URL: set to your production domain (e.g., `https://fzcrm.vercel.app`).
 - Additional Redirect URLs: add the following for magic links and local dev:
   - `http://localhost:3000`
-  - `http://localhost:3000/onboarding`
   - `https://fzcrm.vercel.app`
-  - `https://fzcrm.vercel.app/onboarding`
 - Email OTP: enable Magic Links. Optionally customize the email template; links should open in the same tab.
 - Cookies: leave defaults. Authentication is enforced server-side by checking the Supabase session in each page.
 
 ### Login flow
-- `/login` sends a magic link with `emailRedirectTo` set to `/onboarding`.
-- `/onboarding` completes profile (creates team optionally) and redirects to `/dashboard`.
-- Authenticated access is enforced server-side on `/dashboard`, `/leads`, `/followups`, `/import`, `/settings` (no middleware, to avoid redirect loops).
-- Hitting `/login` when already authenticated will redirect to `/dashboard`.
+- `/login` sends a magic link with `emailRedirectTo` set to `/auth/callback?redirect=/leads` (or your chosen path).
+- `/auth/callback` exchanges the code, bootstraps a profile on the server, and redirects to the target (default `/leads`).
+- Authenticated access is enforced server-side on `/leads`, `/followups`, `/import`, `/settings`.
+- Hitting `/login` when already authenticated will redirect to `/leads`.
 
 ## Theme (Light/Dark)
 - Theme variables live in `app/globals.css` and support light, dark, and system.

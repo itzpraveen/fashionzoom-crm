@@ -7,6 +7,6 @@ export const dynamic = 'force-dynamic'
 export default async function LoginPage() {
   const supabase = createServerSupabase()
   const { data: { user } } = await supabase.auth.getUser()
-  if (user) redirect('/dashboard')
+  if (user) redirect('/leads')
   return <LoginForm />
 }
