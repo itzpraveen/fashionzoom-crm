@@ -31,7 +31,12 @@ export default async function LeadsPage({
   // Build query
   let query = supabase
     .from('leads')
-    .select('id, full_name, primary_phone, city, source, status, score, next_follow_up_at, created_at, last_activity_at, notes, owner:profiles(full_name)', { count: 'exact' })
+    .select(`
+      id, full_name, primary_phone, city, source, status, score, next_follow_up_at, created_at, last_activity_at, notes,
+      owner:profiles(full_name),
+      activities(outcome,type,message,created_at),
+      followups(remark,created_at)
+    `, { count: 'exact' })
     .eq('owner_id', user.id)
     .eq('is_deleted', false)
     .range(offset, offset + PAGE_SIZE - 1)
@@ -54,6 +59,11 @@ export default async function LeadsPage({
     query = query.gte('next_follow_up_at', start.toISOString()).lt('next_follow_up_at', end.toISOString())
   }
   query = query.order('next_follow_up_at', { ascending: true, nullsFirst: false })
+  // Latest nested rows only
+  // @ts-ignore foreignTable typing
+  query = (query as any).order('created_at', { ascending: false, foreignTable: 'activities' }).limit(1, { foreignTable: 'activities' })
+  // @ts-ignore foreignTable typing
+  query = (query as any).order('created_at', { ascending: false, foreignTable: 'followups' }).limit(1, { foreignTable: 'followups' })
   
   const { data: leads, count, error } = await query
   
