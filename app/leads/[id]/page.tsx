@@ -5,6 +5,9 @@ import { FollowUpForm } from '@/components/FollowUpForm'
 import { BadgeScore } from '@/components/BadgeScore'
 import { normalizePhone, waLink } from '@/lib/phone'
 
+// Ensure per-request SSR with cookies (avoid static pre-render causing auth redirect)
+export const dynamic = 'force-dynamic'
+
 export default async function LeadDetail({ params }: { params: { id: string } }) {
   const supabase = createServerSupabase()
   const { data: { user } } = await supabase.auth.getUser()
