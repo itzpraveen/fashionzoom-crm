@@ -2,6 +2,7 @@ import { createServerSupabase } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { createTeam, assignUserToTeam, inviteUser, resendInvite, removeUserFromTeam, setUserRole, deleteTeam, renameTeam, moveMembers } from '@/actions/teams'
 import SubmitButton from '@/components/SubmitButton'
+import ConfirmSubmit from '@/components/ConfirmSubmit'
 
 export const dynamic = 'force-dynamic'
 
@@ -228,17 +229,23 @@ export default async function TeamsSettingsPage() {
                   <td className="py-2 pr-4">
                     <form action={renameTeamAction} className="flex items-center gap-2">
                       <input type="hidden" name="teamId" value={t.id} />
-                      <input name="name" defaultValue={t.name} className="form-input w-48" />
+                      <input name="name" defaultValue={t.name} className="form-input w-48 sm:w-64" />
                       <SubmitButton pendingLabel="Saving…" className="px-2 py-1 rounded bg-white/10 text-xs">Save</SubmitButton>
                     </form>
                   </td>
                   <td className="py-2 pr-4">{count}</td>
                   <td className="py-2 pr-4 whitespace-nowrap">{new Date(t.created_at).toLocaleDateString()}</td>
                   <td className="py-2 pr-4">
-                    <form action={deleteTeamAction} onSubmit={(e)=>{ if(!confirm('Delete team? This will fail if any users or leads are still assigned.')) e.preventDefault() }}>
+                    <form action={deleteTeamAction} id={`delete-team-${t.id}`}>
                       <input type="hidden" name="teamId" value={t.id} />
-                      <SubmitButton pendingLabel="Deleting…" className="px-2 py-1 rounded bg-danger/80 text-white text-xs">Delete</SubmitButton>
                     </form>
+                    <ConfirmSubmit
+                      formId={`delete-team-${t.id}`}
+                      className="px-2 py-1 rounded bg-danger/80 text-white text-xs"
+                      confirmMessage="Delete team? This will fail if any users or leads are still assigned."
+                    >
+                      Delete
+                    </ConfirmSubmit>
                   </td>
                 </tr>
               )})}
