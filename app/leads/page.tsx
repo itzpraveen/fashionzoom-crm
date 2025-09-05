@@ -5,6 +5,7 @@ import { Skeleton } from '@/components/Skeleton'
 import { AddLeadButton } from '@/components/AddLeadButton'
 import { Pagination } from '@/components/Pagination'
 import { redirect } from 'next/navigation'
+import { LeadsFilters } from '@/components/LeadsFilters'
 
 export const dynamic = 'force-dynamic'
 
@@ -64,51 +65,7 @@ export default async function LeadsPage({
       {/* Add Lead CTA and Filters */}
       <div className="flex items-center justify-between gap-4">
         <AddLeadButton />
-        <div className="flex gap-2">
-          <select
-            className="rounded bg-white/5 border border-white/10 px-3 py-1.5 text-sm"
-            onChange={(e) => {
-              const params = new URLSearchParams(searchParams)
-              if (e.target.value) {
-                params.set('status', e.target.value)
-              } else {
-                params.delete('status')
-              }
-              params.set('page', '1')
-              window.location.href = `?${params.toString()}`
-            }}
-            defaultValue={searchParams.status || ''}
-          >
-            <option value="">All Status</option>
-            <option value="NEW">New</option>
-            <option value="CONTACTED">Contacted</option>
-            <option value="FOLLOW_UP">Follow Up</option>
-            <option value="QUALIFIED">Qualified</option>
-            <option value="CONVERTED">Converted</option>
-            <option value="LOST">Lost</option>
-            <option value="DNC">DNC</option>
-          </select>
-          <input
-            type="search"
-            placeholder="Search leads..."
-            className="rounded bg-white/5 border border-white/10 px-3 py-1.5 text-sm w-48"
-            defaultValue={searchParams.search || ''}
-            onChange={(e) => {
-              const params = new URLSearchParams(searchParams)
-              if (e.target.value) {
-                params.set('search', e.target.value)
-              } else {
-                params.delete('search')
-              }
-              params.set('page', '1')
-              // Debounce search
-              clearTimeout((window as any).searchTimeout)
-              ;(window as any).searchTimeout = setTimeout(() => {
-                window.location.href = `?${params.toString()}`
-              }, 500)
-            }}
-          />
-        </div>
+        <LeadsFilters status={searchParams.status} search={searchParams.search} />
       </div>
       
       {leads?.length === 0 ? (
