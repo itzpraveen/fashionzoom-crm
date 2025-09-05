@@ -99,10 +99,10 @@ Note: E2E tests expect the dev server running and a signed-in session or seeded 
 - Cookies: leave defaults. Authentication is enforced server-side by checking the Supabase session in each page.
 
 ### Login flow
-- `/login` sends a magic link with `emailRedirectTo` set to `/auth/callback?redirect=/leads` (or your chosen path).
-- `/auth/callback` exchanges the code, bootstraps a profile on the server, and redirects to the target (default `/leads`).
-- Authenticated access is enforced server-side on `/leads`, `/followups`, `/import`, `/settings`.
-- Hitting `/login` when already authenticated will redirect to `/leads`.
+- `/login` sends a magic link with `emailRedirectTo` set to `/auth/callback?redirect=/dashboard` (or your chosen path).
+- `/auth/callback` exchanges the code, bootstraps a profile on the server, and redirects to the target (default `/dashboard`).
+- Authenticated access is enforced server-side on `/dashboard`, `/leads`, `/followups`, `/import`, `/settings`.
+- Hitting `/login` when already authenticated will redirect to `/dashboard`.
 
 ## Theme (Light/Dark)
 - Theme variables live in `app/globals.css` and support light, dark, and system.

@@ -5,7 +5,7 @@ import { bootstrapProfile } from '@/actions/auth'
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const code = searchParams.get('code')
-  const redirect = searchParams.get('redirect') || '/leads'
+  const redirect = searchParams.get('redirect') || '/dashboard'
 
   if (code) {
     const supabase = createServerSupabase()
