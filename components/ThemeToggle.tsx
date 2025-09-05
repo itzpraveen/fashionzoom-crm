@@ -1,5 +1,6 @@
 "use client"
 import { useEffect, useState } from 'react'
+import { Sun, Moon, Monitor } from 'lucide-react'
 
 type Theme = 'light' | 'dark' | 'system'
 
@@ -27,17 +28,23 @@ export function ThemeToggle() {
     applyTheme(next)
   }
 
+  const title = theme === 'system' ? 'Theme: Auto' : `Theme: ${theme[0].toUpperCase()}${theme.slice(1)}`
+  const Icon = theme === 'dark' ? Moon : theme === 'light' ? Sun : Monitor
+
+  function cycle() {
+    const next: Theme = theme === 'system' ? 'light' : theme === 'light' ? 'dark' : 'system'
+    onChange(next)
+  }
+
   return (
-    <div className="relative">
-      <label className="visually-hidden" htmlFor="theme">Theme</label>
-      <select id="theme" className="bg-surface-2 border border-line rounded px-2 py-1 text-sm"
-        value={theme}
-        onChange={(e)=>onChange(e.target.value as Theme)}
-        aria-label="Theme switcher">
-        <option value="system">Auto</option>
-        <option value="light">Light</option>
-        <option value="dark">Dark</option>
-      </select>
-    </div>
+    <button
+      type="button"
+      onClick={cycle}
+      title={title}
+      aria-label={title}
+      className="inline-flex items-center justify-center h-8 w-8 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
+    >
+      <Icon className="h-4 w-4" aria-hidden="true" />
+    </button>
   )
 }
