@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { DispositionSheet } from '@/components/DispositionSheet'
 import { FollowUpForm } from '@/components/FollowUpForm'
 import { BadgeScore } from '@/components/BadgeScore'
+import { normalizePhone, waLink } from '@/lib/phone'
 
 export default async function LeadDetail({ params }: { params: { id: string } }) {
   const supabase = createServerSupabase()
@@ -14,6 +15,10 @@ export default async function LeadDetail({ params }: { params: { id: string } })
 
   if (!lead) return <div>Lead not found</div>
 
+  const n = normalizePhone(lead.primary_phone)
+  const telHref = n ? `tel:+91${n}` : `tel:${lead.primary_phone}`
+  const waHref = waLink(lead.primary_phone)
+
   return (
     <div className="space-y-4">
       <header className="flex items-center gap-3">
@@ -22,8 +27,8 @@ export default async function LeadDetail({ params }: { params: { id: string } })
           <div className="text-sm text-muted">{lead.status} • <BadgeScore score={lead.score} /></div>
         </div>
         <div className="ml-auto flex gap-2">
-          <a href={`tel:${lead.primary_phone}`} className="rounded bg-white/10 px-3 py-2 text-sm">Call</a>
-          <a href={`https://wa.me/91${lead.primary_phone}`} className="rounded bg-white/10 px-3 py-2 text-sm">WhatsApp</a>
+          <a href={telHref} className="rounded bg-white/10 px-3 py-2 text-sm">Call</a>
+          <a href={waHref} className="rounded bg-white/10 px-3 py-2 text-sm">WhatsApp</a>
           <a href={`mailto:${lead.email ?? ''}`} className="rounded bg-white/10 px-3 py-2 text-sm">Email</a>
         </div>
       </header>

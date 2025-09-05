@@ -10,7 +10,8 @@ export default async function Page() {
   }
   // If user exists, send them to a sensible home
   const { data: profile } = await supabase.from('profiles').select('id').eq('id', user.id).maybeSingle()
-  if (!profile) redirect('/onboarding')
+  // If no profile row exists (e.g., bootstrap failed), skip onboarding and go to leads
+  if (!profile) redirect('/leads')
   // Default landing after login
   redirect('/dashboard')
 }

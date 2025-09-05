@@ -69,6 +69,7 @@ Deploy via Supabase CLI. Function path: `supabase/functions/ingest-lead/index.ts
 
 - Unit (Vitest): `pnpm test`
 - E2E (Playwright): `pnpm e2e`
+- Typecheck (app only): `pnpm typecheck:app`
 
 Note: E2E tests expect the dev server running and a signed-in session or seeded state matching the test assumptions.
 
