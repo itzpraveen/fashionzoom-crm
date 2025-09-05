@@ -1,10 +1,28 @@
 "use client"
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { usePathname } from 'next/navigation'
 import { Plus } from 'lucide-react'
 import { AddLeadModal } from './AddLeadModal'
+import { createBrowserClient } from '@/lib/supabase/client'
 
 export default function MobileFab() {
   const [open, setOpen] = useState(false)
+  const [loggedIn, setLoggedIn] = useState<boolean>(false)
+  const pathname = usePathname()
+
+  useEffect(() => {
+    const supabase = createBrowserClient()
+    supabase.auth.getUser().then((res: any) => setLoggedIn(!!res?.data?.user))
+    const { data } = supabase.auth.onAuthStateChange((_evt: any, session: any) => {
+      setLoggedIn(!!session?.user)
+    })
+    return () => { data.subscription.unsubscribe() }
+  }, [])
+
+  // Hide FAB on auth pages or when not signed in
+  if (!loggedIn) return null
+  if (pathname?.startsWith('/login') || pathname?.startsWith('/auth/')) return null
+
   return (
     <>
       <button
@@ -18,4 +36,3 @@ export default function MobileFab() {
     </>
   )
 }
-
