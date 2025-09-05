@@ -41,10 +41,6 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         <header className="sticky top-0 z-30 border-b border-white/10 bg-gradient-to-b from-black/5 to-transparent backdrop-blur">
           <TopNav />
-          <div className="mx-auto max-w-6xl px-4 pb-1 flex items-center justify-end sm:hidden gap-2">
-            <AuthNav />
-            <ThemeToggle />
-          </div>
         </header>
         <main id="content" role="main" className="mx-auto max-w-6xl px-4 py-4 pb-20 sm:pb-6">
           {children}

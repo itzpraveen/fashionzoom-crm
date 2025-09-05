@@ -2,6 +2,8 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { Users, FileText, Upload, ListChecks, LogOut, Settings as SettingsIcon } from 'lucide-react'
+import { ThemeToggle } from '@/components/ThemeToggle'
+import AuthNav from '@/components/AuthNav'
 
 const mainItems: { href: string; label: string }[] = [
   { href: '/dashboard', label: 'Dashboard' },
@@ -77,30 +79,34 @@ export default function TopNav() {
           </div>
         </details>
       </div>
-      {/* Mobile menu */}
-      <details className="ml-auto sm:hidden">
-        <summary className="list-none cursor-pointer rounded bg-white/10 px-3 py-2">Menu</summary>
-        <div className="mt-2 w-56 card p-2">
-          <nav className="flex flex-col text-sm" aria-label="Mobile navigation">
-            <Link className="px-2 py-1 rounded hover:bg-white/10" href="/dashboard" prefetch>Dashboard</Link>
-            <Link className="px-2 py-1 rounded hover:bg-white/10" href="/leads" prefetch>Leads</Link>
-            <Link className="px-2 py-1 rounded hover:bg-white/10" href="/followups" prefetch>Follow-ups</Link>
-            <details>
-              <summary className="px-2 py-1 rounded hover:bg-white/10 cursor-pointer inline-flex items-center gap-1">
-                <SettingsIcon size={16} aria-hidden="true" /> Settings
-              </summary>
-              <div className="pl-2 mt-1 flex flex-col">
-                <Link className="flex items-center gap-2 px-2 py-1 rounded hover:bg-white/10" href="/settings/teams" prefetch><Users size={14} /> Teams</Link>
-                <Link className="flex items-center gap-2 px-2 py-1 rounded hover:bg-white/10" href="/settings/templates" prefetch><FileText size={14} /> Templates</Link>
-                <Link className="flex items-center gap-2 px-2 py-1 rounded hover:bg-white/10" href="/import" prefetch><Upload size={14} /> Import</Link>
-                <Link className="flex items-center gap-2 px-2 py-1 rounded hover:bg-white/10" href="/settings/assignment-rules" prefetch><ListChecks size={14} /> Assignment Rules</Link>
-                <div className="border-t border-white/10 my-1" />
-                <Link className="flex items-center gap-2 px-2 py-1 rounded hover:bg-white/10 text-danger" href="/logout" prefetch><LogOut size={14} /> Logout</Link>
-              </div>
-            </details>
-          </nav>
-        </div>
-      </details>
+      {/* Mobile actions + menu */}
+      <div className="ml-auto sm:hidden flex items-center gap-2">
+        <ThemeToggle />
+        <details>
+          <summary className="list-none cursor-pointer rounded bg-white/10 px-3 py-2">Menu</summary>
+          <div className="mt-2 w-56 card p-2">
+            <nav className="flex flex-col text-sm" aria-label="Mobile navigation">
+              <Link className="px-2 py-1 rounded hover:bg-white/10" href="/dashboard" prefetch>Dashboard</Link>
+              <Link className="px-2 py-1 rounded hover:bg-white/10" href="/leads" prefetch>Leads</Link>
+              <Link className="px-2 py-1 rounded hover:bg-white/10" href="/followups" prefetch>Follow-ups</Link>
+              <details>
+                <summary className="px-2 py-1 rounded hover:bg-white/10 cursor-pointer inline-flex items-center gap-1">
+                  <SettingsIcon size={16} aria-hidden="true" /> Settings
+                </summary>
+                <div className="pl-2 mt-1 flex flex-col">
+                  <Link className="flex items-center gap-2 px-2 py-1 rounded hover:bg-white/10" href="/settings/teams" prefetch><Users size={14} /> Teams</Link>
+                  <Link className="flex items-center gap-2 px-2 py-1 rounded hover:bg-white/10" href="/settings/templates" prefetch><FileText size={14} /> Templates</Link>
+                  <Link className="flex items-center gap-2 px-2 py-1 rounded hover:bg-white/10" href="/import" prefetch><Upload size={14} /> Import</Link>
+                  <Link className="flex items-center gap-2 px-2 py-1 rounded hover:bg-white/10" href="/settings/assignment-rules" prefetch><ListChecks size={14} /> Assignment Rules</Link>
+                </div>
+              </details>
+              <div className="border-t border-white/10 my-1" />
+              {/* Login/Logout entry */}
+              <AuthNav />
+            </nav>
+          </div>
+        </details>
+      </div>
     </nav>
   )
 }
