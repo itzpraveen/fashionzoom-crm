@@ -2,6 +2,26 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer components {
+  .card {
+    @apply rounded-lg border border-line shadow-sm;
+    background-color: color-mix(in srgb, var(--surface) 85%, transparent);
+  }
+  .btn-primary {
+    @apply rounded-md px-3 py-2 shadow-sm text-white; 
+    background-color: var(--primary);
+  }
+  .btn-primary:hover { filter: brightness(0.95); }
+  .btn-primary:active { filter: brightness(0.9); transform: translateY(1px); }
+  .form-input {
+    @apply w-full rounded-md bg-surface-2 border border-line text-sm focus:outline-none;
+    padding: 0.625rem 0.75rem; /* base: a bit larger for mobile */
+  }
+  @screen lg {
+    .form-input { padding: 0.5rem 0.625rem; } /* denser on desktop */
+  }
+}
+
 /* Light theme defaults */
 :root {
   --bg: #ffffff;

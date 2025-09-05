@@ -28,7 +28,7 @@ export function LeadsFilters({ status, search, due }: { status?: string; search?
   return (
     <div className="flex gap-2">
       <select
-        className="rounded bg-white/5 border border-white/10 px-3 py-1.5 text-sm"
+        className="form-input w-auto"
         onChange={(e) => {
           router.push(buildUrl({ status: e.target.value }))
         }}
@@ -46,7 +46,7 @@ export function LeadsFilters({ status, search, due }: { status?: string; search?
       <input
         type="search"
         placeholder="Search leads..."
-        className="rounded bg-white/5 border border-white/10 px-3 py-1.5 text-sm w-48"
+        className="form-input w-48"
         defaultValue={search || ''}
         onChange={(e) => {
           const val = e.target.value

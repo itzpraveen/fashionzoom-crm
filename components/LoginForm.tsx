@@ -34,12 +34,12 @@ export default function LoginForm() {
         <input
           type="email"
           required
-          className="w-full rounded bg-surface-2 border border-line px-3 py-2"
+          className="form-input"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           aria-label="Email address"
         />
-        <button type="submit" className="touch-target w-full rounded bg-primary text-white font-medium px-4 py-2">Email me a sign‑in link</button>
+        <button type="submit" className="touch-target w-full btn-primary font-medium">Email me a sign‑in link</button>
         {error && <p role="alert" aria-live="polite" className="text-danger text-sm">{error}</p>}
         {sent && <p aria-live="polite" className="text-success text-sm">Check your inbox and click the link to continue.</p>}
       </form>

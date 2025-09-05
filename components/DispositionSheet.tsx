@@ -64,7 +64,7 @@ export function DispositionSheet({ leadId, onDone }: { leadId: string; onDone?: 
             setSubmitting(false)
             setOpen(false)
             onDone?.()
-          }} className="w-full rounded bg-success text-black font-medium px-3 py-2">Save</button>
+          }} className="w-full rounded-md bg-success text-black font-medium px-3 py-2 hover:bg-success/90 active:bg-success/80 active:translate-y-px">Save</button>
         </div>
       </div>
     </div>

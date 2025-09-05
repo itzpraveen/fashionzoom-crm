@@ -80,7 +80,7 @@ export function LeadCard({ lead, role }: LeadCardProps) {
         </a>
         <button
           onClick={()=>router.push(`/leads/${lead.id}`)}
-          className="touch-target rounded bg-primary text-white px-3 py-2 text-sm flex items-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
+          className="touch-target btn-primary text-sm flex items-center gap-1"
           aria-label="Open lead"
         >
           <ExternalLink size={16} aria-hidden="true" />

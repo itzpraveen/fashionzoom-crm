@@ -82,14 +82,14 @@ export function DashboardTiles() {
           <Link
             key={t.label}
             href={href}
-            className="rounded border border-white/10 p-3 hover:bg-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
+            className="card p-3 hover:bg-white/70 dark:hover:bg-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
             aria-label={`Open ${t.label}`}
             prefetch
           >
             {content}
           </Link>
         ) : (
-          <div key={t.label} className="rounded border border-white/10 p-3">
+          <div key={t.label} className="card p-3">
             {content}
           </div>
         )
