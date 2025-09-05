@@ -3,6 +3,8 @@ import { createServerSupabase } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import DashboardTabs from '@/components/DashboardTabs'
 
+export const dynamic = 'force-dynamic'
+
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
   const supabase = createServerSupabase()
   const { data: { user } } = await supabase.auth.getUser()
@@ -15,4 +17,3 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     </div>
   )
 }
-

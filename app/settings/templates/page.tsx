@@ -63,3 +63,4 @@ export default async function TemplatesPage() {
     </div>
   )
 }
+export const dynamic = 'force-dynamic'

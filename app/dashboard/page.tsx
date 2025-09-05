@@ -7,3 +7,4 @@ export default async function DashboardPage() {
   if (!user) redirect('/login')
   redirect('/dashboard/overview')
 }
+export const dynamic = 'force-dynamic'

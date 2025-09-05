@@ -69,3 +69,4 @@ export default async function FollowupsPage() {
     </div>
   )
 }
+export const dynamic = 'force-dynamic'

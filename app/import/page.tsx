@@ -13,3 +13,4 @@ export default async function ImportPage() {
     </div>
   )
 }
+export const dynamic = 'force-dynamic'

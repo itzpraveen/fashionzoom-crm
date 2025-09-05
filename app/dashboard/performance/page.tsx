@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { DashboardTiles } from '@/components/DashboardTiles'
-
 export const dynamic = 'force-dynamic'
 
 export default async function PerformancePage() {
@@ -15,4 +14,4 @@ export default async function PerformancePage() {
     </div>
   )
 }
-
+ 
