@@ -11,7 +11,7 @@ export default async function FollowupsPage() {
     <div className="space-y-3">
       <h1 className="text-xl font-semibold">Follow-ups</h1>
       <div className="space-y-2">
-        {data?.map((f) => (
+        {data?.map((f: any) => (
           <div key={f.id} className="border border-white/10 rounded p-2 text-sm flex items-center justify-between">
             <div>
               <div className="text-muted text-xs">{new Date(f.due_at).toLocaleString()} • {f.priority} • {f.status}</div>

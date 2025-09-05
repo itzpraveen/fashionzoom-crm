@@ -1,7 +1,7 @@
 import './globals.css'
 import type { ReactNode } from 'react'
 import Link from 'next/link'
-// PWA is disabled for active development; unregister any prior SWs
+// PWA handling is feature-flagged for dev convenience
 import SWUnregister from './sw-unregister'
 import FooterNav from '@/components/FooterNav'
 import { ThemeToggle } from '@/components/ThemeToggle'
@@ -30,12 +30,15 @@ export const viewport = {
 const themeInitScript = `(() => { try { const t = localStorage.getItem('fzcrm-theme'); if (t==='light'||t==='dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {} })();`
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
+  const enablePWA = process.env.NEXT_PUBLIC_ENABLE_PWA === '1'
   return (
     <html lang="en">
       <body className="bg-grid">
+        {/* Skip link for keyboard users */}
+        <a href="#content" className="visually-hidden focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:bg-primary focus:text-white focus:px-3 focus:py-2 focus:rounded">Skip to content</a>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         <header className="sticky top-0 z-30 border-b border-white/10 bg-gradient-to-b from-black/10 to-transparent backdrop-blur">
-          <nav className="mx-auto max-w-6xl px-4 py-3 flex items-center gap-4 text-sm">
+          <nav aria-label="Top" className="mx-auto max-w-6xl px-4 py-3 flex items-center gap-4 text-sm">
             <Link href="/leads" className="font-semibold tracking-tight flex items-center gap-2">
               <span className="inline-flex h-6 w-6 items-center justify-center rounded bg-primary/20 text-primary font-bold">FZ</span>
               FashionZoom CRM
@@ -56,11 +59,11 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             </div>
           </nav>
         </header>
-        <main className="mx-auto max-w-6xl px-4 py-4 pb-20 sm:pb-6">
+        <main id="content" role="main" className="mx-auto max-w-6xl px-4 py-4 pb-20 sm:pb-6">
           {children}
         </main>
-        {/* Ensure any previously installed SW is removed during active development */}
-        <SWUnregister />
+        {/* Ensure any previously installed SW is removed when PWA is disabled */}
+        {!enablePWA && <SWUnregister />}
         {/* Bottom navigation for mobile */}
         <FooterNav />
       </body>

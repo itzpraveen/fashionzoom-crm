@@ -1,9 +1,29 @@
 "use client"
 import { useEffect, useState } from 'react'
-import { createBrowserClient } from '@/lib/supabase/client'
+import { createBrowserClient } from '@/lib/supabase/client-with-retry'
 
 type Tile = { label: string; value: number }
 
+/**
+ * Dashboard metrics display component with real-time updates
+ * 
+ * Displays key performance indicators:
+ * - Today's call count
+ * - Contact rate percentage
+ * - Overdue follow-ups count
+ * - Leads created today
+ * 
+ * Features:
+ * - Real-time updates via Supabase Realtime subscriptions
+ * - Automatic refresh when new activities or follow-ups are created
+ * - Responsive grid layout
+ * - Loading states handled gracefully
+ * 
+ * @example
+ * ```tsx
+ * <DashboardTiles />
+ * ```
+ */
 export function DashboardTiles() {
   const supabase = createBrowserClient()
   const [tiles, setTiles] = useState<Tile[]>([

@@ -10,7 +10,7 @@ export default async function RulesPage() {
     <div className="space-y-3">
       <h1 className="text-xl font-semibold">Assignment Rules</h1>
       <div className="space-y-2">
-        {rules?.map(r => (
+        {rules?.map((r: any) => (
           <div key={r.id} className="border border-white/10 rounded p-3 text-sm">
             <div className="font-medium">{r.name}</div>
             <div className="text-muted">{r.strategy} • {r.is_active? 'Active':'Inactive'}</div>

@@ -10,7 +10,7 @@ export default async function TemplatesPage() {
     <div className="space-y-3">
       <h1 className="text-xl font-semibold">Templates</h1>
       <div className="grid gap-2">
-        {templates?.map(t => (
+        {templates?.map((t: any) => (
           <div key={t.id} className="border border-white/10 rounded p-3">
             <div className="text-sm text-muted">{t.channel}</div>
             <div className="font-medium">{t.name}</div>

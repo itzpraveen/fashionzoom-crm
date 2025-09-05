@@ -54,7 +54,7 @@ export default async function TeamsSettingsPage() {
           <div>
             <label className="block text-xs text-muted">Team</label>
             <select name="teamId" className="w-full rounded bg-surface-2 border border-line px-3 py-2" required>
-              {(teams||[]).map(t => (<option key={t.id} value={t.id}>{t.name}</option>))}
+              {(teams||[]).map((t: any) => (<option key={t.id} value={t.id}>{t.name}</option>))}
             </select>
           </div>
           <div>
@@ -82,11 +82,11 @@ export default async function TeamsSettingsPage() {
               </tr>
             </thead>
             <tbody>
-              {(members||[]).map(m => (
+              {(members||[]).map((m: any) => (
                 <tr key={m.id} className="border-t border-white/10">
                   <td className="py-2 pr-4">{m.full_name || '—'}</td>
                   <td className="py-2 pr-4">{m.role}</td>
-                  <td className="py-2 pr-4">{(teams||[]).find(t=>t.id===m.team_id)?.name || '—'}</td>
+                  <td className="py-2 pr-4">{(teams||[]).find((t: any)=>t.id===m.team_id)?.name || '—'}</td>
                   <td className="py-2 pr-4 font-mono text-xs">{m.id}</td>
                 </tr>
               ))}

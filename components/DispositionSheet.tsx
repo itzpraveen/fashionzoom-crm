@@ -24,10 +24,10 @@ export function DispositionSheet({ leadId, onDone }: { leadId: string; onDone?: 
 
   if (!open) return null
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur flex items-end sm:items-center justify-center p-3">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur flex items-end sm:items-center justify-center p-3" role="dialog" aria-modal="true" aria-labelledby="disposition-title">
       <div className="w-full max-w-md bg-bg border border-white/10 rounded p-4">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-lg font-semibold">Disposition</h3>
+          <h3 id="disposition-title" className="text-lg font-semibold">Disposition</h3>
           <button onClick={()=>setOpen(false)} aria-label="Close" className="text-muted">✕</button>
         </div>
         <div className="space-y-3">
@@ -59,7 +59,8 @@ export function DispositionSheet({ leadId, onDone }: { leadId: string; onDone?: 
           </div>
           <button disabled={submitting} onClick={async ()=>{
             setSubmitting(true)
-            await saveDisposition({ leadId, outcome, note, nextFollowUpAt: dueAt || null, priority })
+            const iso = dueAt ? new Date(dueAt).toISOString() : null
+            await saveDisposition({ leadId, outcome, note, nextFollowUpAt: iso, priority })
             setSubmitting(false)
             setOpen(false)
             onDone?.()

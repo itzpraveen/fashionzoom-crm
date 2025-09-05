@@ -1,6 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  eslint: {
+    // CI runs lint explicitly; don't block production builds on lint
+    ignoreDuringBuilds: true,
+  },
   experimental: {
     serverActions: {
       bodySizeLimit: '2mb'

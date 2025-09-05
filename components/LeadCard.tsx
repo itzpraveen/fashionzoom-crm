@@ -4,6 +4,9 @@ import { useRouter } from 'next/navigation'
 import { BadgeScore } from './BadgeScore'
 import { Phone, MessageCircle, ExternalLink } from 'lucide-react'
 
+/**
+ * Lead data structure for display in cards
+ */
 export type Lead = {
   id: string
   full_name: string | null
@@ -16,7 +19,28 @@ export type Lead = {
   status: string
 }
 
-export function LeadCard({ lead, role }: { lead: Lead; role?: 'TELECALLER'|'MANAGER'|'ADMIN' }) {
+interface LeadCardProps {
+  /** Lead data to display */
+  lead: Lead
+  /** User role for determining phone masking */
+  role?: 'TELECALLER' | 'MANAGER' | 'ADMIN'
+}
+
+/**
+ * Displays a lead in a card format with quick actions
+ * 
+ * Features:
+ * - Phone number masking based on user role
+ * - Quick call and WhatsApp actions
+ * - Status badges and scoring display
+ * - Responsive design for mobile and desktop
+ * 
+ * @example
+ * ```tsx
+ * <LeadCard lead={leadData} role="MANAGER" />
+ * ```
+ */
+export function LeadCard({ lead, role }: LeadCardProps) {
   const router = useRouter()
   const masked = maskPhone(lead.primary_phone, role)
   return (

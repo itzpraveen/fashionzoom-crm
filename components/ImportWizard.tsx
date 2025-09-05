@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { importLeads } from '@/actions/leads'
 import { normalizePhone } from '@/lib/phone'
+import { parseCsv, dedupeByNormalizedPhone } from '@/lib/utils/csv'
 
 type Stage = 'upload'|'map'|'dedupe'|'assign'|'summary'
 
@@ -14,12 +15,11 @@ export function ImportWizard() {
 
   const parse = async (file: File) => {
     const text = await file.text()
-    const [header, ...lines] = text.split(/\r?\n/).filter(Boolean)
-    const cols = header.split(',')
-    const data = lines.map(l => {
-      const vals = l.split(',')
+    const { header, rows } = parseCsv(text)
+    const cols = header.map(c => String(c).trim())
+    const data = rows.map(vals => {
       const obj: any = {}
-      cols.forEach((c,i) => obj[c.trim()] = vals[i]?.trim())
+      cols.forEach((c, i) => (obj[c] = vals[i]?.trim?.() ?? vals[i]))
       return obj
     })
     setRows(data)
@@ -34,16 +34,8 @@ export function ImportWizard() {
       source: r[mapping['source'] || 'source'] || 'Other',
       primary_phone_norm: normalizePhone(r[mapping['primary_phone'] || 'phone'])
     }))
-    // Dedupe by normalized phone
-    const seen = new Set<string>()
-    const deduped: any[] = []
-    for (const m of mapped) {
-      if (!m.primary_phone_norm) continue
-      if (seen.has(m.primary_phone_norm)) continue
-      seen.add(m.primary_phone_norm)
-      deduped.push(m)
-    }
-    setPreview(deduped)
+    const deduped = dedupeByNormalizedPhone(mapped as any, 'primary_phone', normalizePhone)
+    setPreview(deduped as any)
     setStage('dedupe')
   }
 

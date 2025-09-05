@@ -174,6 +174,24 @@ export const createLead = async (input: {
   if (!user) throw new Error('Unauthorized')
   limit(user.id)
 
+  // Demo mode: write to in-memory store
+  if (process.env.NEXT_PUBLIC_DEMO === '1') {
+    const { insertRows } = await import('@/lib/demo/store')
+    const id = crypto.randomUUID?.() || Math.random().toString(36).slice(2)
+    const payload: any = {
+      id,
+      ...data,
+      source: data.source || 'Other',
+      owner_id: user.id,
+      team_id: null,
+      status: 'NEW',
+      score: 55,
+      created_at: new Date().toISOString()
+    }
+    insertRows('leads', [payload])
+    return { ok: true }
+  }
+
   // derive team from profile
   const { data: profile } = await supabase.from('profiles').select('team_id').eq('id', user.id).single()
 

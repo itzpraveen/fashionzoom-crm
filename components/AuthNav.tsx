@@ -8,8 +8,8 @@ export default function AuthNav() {
 
   useEffect(() => {
     const supabase = createBrowserClient()
-    supabase.auth.getUser().then(({ data }) => setLoggedIn(!!data.user))
-    const { data: sub } = supabase.auth.onAuthStateChange((_evt, session) => {
+    supabase.auth.getUser().then((res: any) => setLoggedIn(!!res?.data?.user))
+    const { data: sub } = supabase.auth.onAuthStateChange((_evt: any, session: any) => {
       setLoggedIn(!!session?.user)
     })
     return () => { sub.subscription.unsubscribe() }
@@ -30,4 +30,3 @@ export default function AuthNav() {
     <Link prefetch className="hover:underline" href="/login">Login</Link>
   )
 }
-

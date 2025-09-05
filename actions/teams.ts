@@ -20,6 +20,13 @@ export async function createTeam(input: { name: string }) {
 }
 
 export async function assignUserToTeam(input: { email?: string; userId?: string; teamId: string; role?: 'TELECALLER'|'MANAGER'|'ADMIN' }) {
+  if (process.env.NEXT_PUBLIC_DEMO === '1') {
+    const { getTable, upsertRow } = await import('@/lib/demo/store')
+    const { email, userId, teamId, role } = input
+    const uid = userId || 'demo-user-2'
+    upsertRow('profiles', { id: uid, full_name: email || 'User', role: role || 'TELECALLER', team_id: teamId }, 'id', false)
+    return { ok: true }
+  }
   await assertAdmin()
   const { email, userId, teamId, role } = z.object({
     email: z.string().email().optional(),
@@ -60,4 +67,3 @@ export async function assignUserToTeam(input: { email?: string; userId?: string;
   if (!r.ok) throw new Error('Failed to assign user')
   return { ok: true }
 }
-

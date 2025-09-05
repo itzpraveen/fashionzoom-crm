@@ -31,7 +31,7 @@ export default async function LeadDetail({ params }: { params: { id: string } })
         <section>
           <h2 className="font-semibold mb-2">Timeline</h2>
           <div className="space-y-2">
-            {acts?.map((a) => (
+            {acts?.map((a: any) => (
               <div key={a.id} className="border border-white/10 rounded p-2 text-sm">
                 <div className="text-muted text-xs">{new Date(a.created_at).toLocaleString()} • {a.type} {a.outcome ? `• ${a.outcome}`:''}</div>
                 {a.message && <div>{a.message}</div>}
@@ -44,7 +44,7 @@ export default async function LeadDetail({ params }: { params: { id: string } })
           <h2 className="font-semibold mb-2">Follow-ups</h2>
           <FollowUpForm leadId={lead.id} />
           <div className="space-y-2 mt-2">
-            {fls?.map((f) => (
+            {fls?.map((f: any) => (
               <div key={f.id} className="border border-white/10 rounded p-2 text-sm flex items-center justify-between">
                 <div>
                   <div className="text-xs text-muted">Due {new Date(f.due_at).toLocaleString()} • {f.priority}</div>

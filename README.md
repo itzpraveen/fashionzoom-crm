@@ -20,9 +20,19 @@ Create a `.env.local` in project root with:
 NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+NEXT_PUBLIC_ENABLE_PWA=0
+
+### Optional: Demo Mode
+For quick local exploration without Supabase credentials, you can run in Demo Mode:
+
+```
+NEXT_PUBLIC_DEMO=1
 ```
 
-You can copy `.env.example` to `.env.local` and fill the values.
+This uses an in-memory store with seeded data and mock auth. Do not use in production.
+```
+
+You can copy `.env.example` to `.env.local` and fill the values. Optionally set `NEXT_PUBLIC_ENABLE_PWA=1` to enable the service worker in development.
 
 ### Install & run
 
@@ -66,8 +76,12 @@ Note: E2E tests expect the dev server running and a signed-in session or seeded 
 
 - Phone masking is applied in list views for non-managers. Full phone appears on detail if role is MANAGER/ADMIN.
 - Simple in-memory rate limiting guards server actions.
-- PWA is disabled during active development to avoid caching issues; a small unregistration helper runs in layout. You can re‑enable later.
+- PWA is disabled during active development to avoid caching issues; a small unregistration helper runs in layout when the flag is off. To enable PWA behavior, set `NEXT_PUBLIC_ENABLE_PWA=1` in your env.
 - Manifest icons use SVG; replace with your brand icons any time under `public/icons/`.
+
+### PWA toggle
+- `NEXT_PUBLIC_ENABLE_PWA=1` registers `public/sw.js` in onboarding and skips the auto‑unregister in the root layout.
+- `NEXT_PUBLIC_ENABLE_PWA=0` (default) prevents SW registration and proactively unregisters any prior workers and caches.
 
 ## Housekeeping / Cleanup
 - Middleware auth gating removed to avoid redirect loops; routes enforce auth server‑side.
@@ -83,12 +97,12 @@ Note: E2E tests expect the dev server running and a signed-in session or seeded 
   - `https://fzcrm.vercel.app`
   - `https://fzcrm.vercel.app/onboarding`
 - Email OTP: enable Magic Links. Optionally customize the email template; links should open in the same tab.
-- Cookies: leave defaults. We check for `sb-access-token` in middleware for routing.
+- Cookies: leave defaults. Authentication is enforced server-side by checking the Supabase session in each page.
 
 ### Login flow
 - `/login` sends a magic link with `emailRedirectTo` set to `/onboarding`.
 - `/onboarding` completes profile (creates team optionally) and redirects to `/dashboard`.
-- Authenticated access is enforced with `middleware.ts` on `/dashboard`, `/leads`, `/followups`, `/import`, `/settings`.
+- Authenticated access is enforced server-side on `/dashboard`, `/leads`, `/followups`, `/import`, `/settings` (no middleware, to avoid redirect loops).
 - Hitting `/login` when already authenticated will redirect to `/dashboard`.
 
 ## Theme (Light/Dark)

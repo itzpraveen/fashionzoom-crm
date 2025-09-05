@@ -1,7 +1,11 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { createDemoSupabase } from './demo'
 
 export function createServerSupabase() {
+  if (process.env.NEXT_PUBLIC_DEMO === '1') {
+    return createDemoSupabase()
+  }
   const cookieStore = cookies()
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

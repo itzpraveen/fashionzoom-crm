@@ -22,6 +22,7 @@ export default function FooterNav() {
             <li key={href}>
               <Link
                 href={href}
+                aria-current={active ? 'page' : undefined}
                 className={`flex flex-col items-center justify-center gap-0.5 py-2 rounded touch-target ${active ? 'text-primary' : 'text-muted hover:text-fg'} focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70`}
               >
                 <Icon size={20} aria-hidden="true" />
@@ -34,4 +35,3 @@ export default function FooterNav() {
     </nav>
   )
 }
-

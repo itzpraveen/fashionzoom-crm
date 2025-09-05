@@ -17,8 +17,10 @@ export default function OnboardingPage() {
   const [authError, setAuthError] = useState<string | null>(null)
 
   useEffect(() => {
-    // show A2HS prompt hint after login
-    if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{})
+    // Optionally enable PWA service worker if flagged
+    if (process.env.NEXT_PUBLIC_ENABLE_PWA === '1') {
+      if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{})
+    }
   }, [])
 
   useEffect(() => {
