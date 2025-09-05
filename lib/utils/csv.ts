@@ -35,3 +35,27 @@ export function dedupeByNormalizedPhone(
   return out
 }
 
+/**
+ * Dedupe considering multiple phone fields (e.g., primary + alt).
+ * Keeps the first occurrence of any normalized phone across provided fields.
+ */
+export function dedupeByPhones(
+  rows: Array<Record<string, string>>,
+  phoneFields: string[],
+  normalize: (p?: string | null) => string | null
+) {
+  const seen = new Set<string>()
+  const out: Array<Record<string, string>> = []
+  for (const r of rows) {
+    const keys: string[] = []
+    for (const f of phoneFields) {
+      const n = normalize(r[f])
+      if (n) keys.push(n)
+    }
+    if (keys.length === 0) continue
+    if (keys.some(k => seen.has(k))) continue
+    keys.forEach(k => seen.add(k))
+    out.push(r)
+  }
+  return out
+}

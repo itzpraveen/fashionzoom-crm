@@ -17,7 +17,8 @@ export async function createTeam(input: { name: string }) {
   const { supabase } = await assertAdmin()
   const data = z.object({ name: z.string().min(2) }).parse(input)
   const { error } = await supabase.from('teams').insert({ name: data.name })
-  if (error) throw error
+  if (error) throw new Error(error.message || 'Failed to create team')
+  revalidatePath('/settings/teams')
   return { ok: true }
 }
 
@@ -240,6 +241,71 @@ export async function setUserRole(input: { userId: string; role: 'TELECALLER'|'M
     body: JSON.stringify({ id: userId, role })
   })
   if (!r.ok) throw new Error('Failed to update role')
+  revalidatePath('/settings/teams')
+  return { ok: true }
+}
+
+// Delete a team (admin only). Will fail if referenced by profiles/leads.
+export async function deleteTeam(input: { teamId: string }) {
+  await assertAdmin()
+  const { teamId } = z.object({ teamId: z.string().uuid() }).parse(input)
+
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!serviceKey) throw new Error('Service key missing')
+
+  const resp = await fetch(`${url}/rest/v1/teams?id=eq.${teamId}`, {
+    method: 'DELETE',
+    headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` }
+  })
+  if (!resp.ok) {
+    const text = await resp.text().catch(()=> '')
+    throw new Error(text || 'Failed to delete team. Ensure no users or leads reference this team.')
+  }
+  revalidatePath('/settings/teams')
+  return { ok: true }
+}
+
+// Rename a team (admin only)
+export async function renameTeam(input: { teamId: string; name: string }) {
+  await assertAdmin()
+  const { teamId, name } = z.object({ teamId: z.string().uuid(), name: z.string().min(2) }).parse(input)
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!serviceKey) throw new Error('Service key missing')
+  const resp = await fetch(`${url}/rest/v1/teams?id=eq.${teamId}`, {
+    method: 'PATCH',
+    headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name })
+  })
+  if (!resp.ok) {
+    const text = await resp.text().catch(()=> '')
+    throw new Error(text || 'Failed to rename team')
+  }
+  revalidatePath('/settings/teams')
+  return { ok: true }
+}
+
+// Move all members from one team to another (admin only)
+export async function moveMembers(input: { fromTeamId: string; toTeamId: string }) {
+  await assertAdmin()
+  const { fromTeamId, toTeamId } = z.object({
+    fromTeamId: z.string().uuid(),
+    toTeamId: z.string().uuid()
+  }).parse(input)
+  if (fromTeamId === toTeamId) throw new Error('Choose a different destination team')
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!serviceKey) throw new Error('Service key missing')
+  const resp = await fetch(`${url}/rest/v1/profiles?team_id=eq.${fromTeamId}`, {
+    method: 'PATCH',
+    headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ team_id: toTeamId })
+  })
+  if (!resp.ok) {
+    const text = await resp.text().catch(()=> '')
+    throw new Error(text || 'Failed to move members')
+  }
   revalidatePath('/settings/teams')
   return { ok: true }
 }

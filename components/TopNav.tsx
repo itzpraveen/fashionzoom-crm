@@ -2,14 +2,10 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 
-type Item = { href: string; label: string }
-const items: Item[] = [
+const mainItems: { href: string; label: string }[] = [
   { href: '/dashboard', label: 'Dashboard' },
   { href: '/leads', label: 'Leads' },
   { href: '/followups', label: 'Follow-ups' },
-  { href: '/import', label: 'Import' },
-  { href: '/settings/templates', label: 'Settings' },
-  { href: '/settings/teams', label: 'Teams' },
 ]
 
 export default function TopNav() {
@@ -32,6 +28,7 @@ export default function TopNav() {
         </picture>
         {/* Hide text label to avoid double branding */}
       </Link>
+      {/* Desktop nav */}
       <div className="ml-auto hidden sm:flex items-center gap-3">
         <input
           type="search"
@@ -39,7 +36,7 @@ export default function TopNav() {
           className="form-input w-56"
           onKeyDown={onSearch}
         />
-        {items.map(({ href, label }) => {
+        {mainItems.map(({ href, label }) => {
           const active = pathname?.startsWith(href)
           return (
             <Link
@@ -53,7 +50,38 @@ export default function TopNav() {
             </Link>
           )
         })}
+        <details className="relative">
+          <summary className="list-none cursor-pointer hover:underline">Settings</summary>
+          <div className="absolute right-0 mt-2 w-44 card p-2 z-50">
+            <nav className="flex flex-col text-sm" aria-label="Settings">
+              <Link className="px-2 py-1 rounded hover:bg-white/10" href="/settings/teams" prefetch>Teams</Link>
+              <Link className="px-2 py-1 rounded hover:bg-white/10" href="/settings/templates" prefetch>Templates</Link>
+              <Link className="px-2 py-1 rounded hover:bg-white/10" href="/import" prefetch>Import</Link>
+              <Link className="px-2 py-1 rounded hover:bg-white/10" href="/settings/assignment-rules" prefetch>Assignment Rules</Link>
+            </nav>
+          </div>
+        </details>
       </div>
+      {/* Mobile menu */}
+      <details className="ml-auto sm:hidden">
+        <summary className="list-none cursor-pointer rounded bg-white/10 px-3 py-2">Menu</summary>
+        <div className="mt-2 w-56 card p-2">
+          <nav className="flex flex-col text-sm" aria-label="Mobile navigation">
+            <Link className="px-2 py-1 rounded hover:bg-white/10" href="/dashboard" prefetch>Dashboard</Link>
+            <Link className="px-2 py-1 rounded hover:bg-white/10" href="/leads" prefetch>Leads</Link>
+            <Link className="px-2 py-1 rounded hover:bg-white/10" href="/followups" prefetch>Follow-ups</Link>
+            <details>
+              <summary className="px-2 py-1 rounded hover:bg-white/10 cursor-pointer">Settings</summary>
+              <div className="pl-2 mt-1 flex flex-col">
+                <Link className="px-2 py-1 rounded hover:bg-white/10" href="/settings/teams" prefetch>Teams</Link>
+                <Link className="px-2 py-1 rounded hover:bg-white/10" href="/settings/templates" prefetch>Templates</Link>
+                <Link className="px-2 py-1 rounded hover:bg-white/10" href="/import" prefetch>Import</Link>
+                <Link className="px-2 py-1 rounded hover:bg-white/10" href="/settings/assignment-rules" prefetch>Assignment Rules</Link>
+              </div>
+            </details>
+          </nav>
+        </div>
+      </details>
     </nav>
   )
 }

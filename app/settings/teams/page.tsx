@@ -1,6 +1,7 @@
 import { createServerSupabase } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { createTeam, assignUserToTeam, inviteUser, resendInvite, removeUserFromTeam, setUserRole } from '@/actions/teams'
+import { createTeam, assignUserToTeam, inviteUser, resendInvite, removeUserFromTeam, setUserRole, deleteTeam, renameTeam, moveMembers } from '@/actions/teams'
+import SubmitButton from '@/components/SubmitButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -50,6 +51,23 @@ export default async function TeamsSettingsPage() {
     const uid = String(formData.get('userId') || '')
     await setUserRole({ userId: uid, role: 'TELECALLER' })
   }
+  async function deleteTeamAction(formData: FormData) {
+    'use server'
+    const teamId = String(formData.get('teamId') || '')
+    await deleteTeam({ teamId })
+  }
+  async function renameTeamAction(formData: FormData) {
+    'use server'
+    const teamId = String(formData.get('teamId') || '')
+    const name = String(formData.get('name') || '')
+    await renameTeam({ teamId, name })
+  }
+  async function moveMembersAction(formData: FormData) {
+    'use server'
+    const fromTeamId = String(formData.get('fromTeamId') || '')
+    const toTeamId = String(formData.get('toTeamId') || '')
+    await moveMembers({ fromTeamId, toTeamId })
+  }
 
   return (
     <div className="space-y-6">
@@ -58,8 +76,8 @@ export default async function TeamsSettingsPage() {
       <section className="space-y-2">
         <h2 className="font-medium">Create Team</h2>
         <form action={createTeamAction} className="flex gap-2">
-          <input name="name" placeholder="Team name" className="rounded bg-surface-2 border border-line px-3 py-2" required />
-          <button className="rounded bg-primary text-white px-3 py-2">Create</button>
+          <input name="name" placeholder="Team name" className="form-input" required />
+          <SubmitButton className="btn-primary" pendingLabel="Creating…">Create</SubmitButton>
         </form>
       </section>
 
@@ -68,23 +86,23 @@ export default async function TeamsSettingsPage() {
         <form action={inviteAction} className="grid grid-cols-1 sm:grid-cols-5 gap-2 items-end">
           <div>
             <label className="block text-xs text-muted">Email</label>
-            <input name="email" type="email" placeholder="user@example.com" className="w-full rounded bg-surface-2 border border-line px-3 py-2" required />
+            <input name="email" type="email" placeholder="user@example.com" className="form-input" required />
           </div>
           <div>
             <label className="block text-xs text-muted">Team (optional)</label>
-            <select name="teamId" className="w-full rounded bg-surface-2 border border-line px-3 py-2">
+            <select name="teamId" className="form-input">
               <option value="">—</option>
               {(teams||[]).map((t: any) => (<option key={t.id} value={t.id}>{t.name}</option>))}
             </select>
           </div>
           <div>
             <label className="block text-xs text-muted">Role</label>
-            <select name="role" className="w-full rounded bg-surface-2 border border-line px-3 py-2">
+            <select name="role" className="form-input">
               {['TELECALLER','MANAGER','ADMIN'].map(r => (<option key={r} value={r}>{r}</option>))}
             </select>
           </div>
           <div className="sm:col-span-2">
-            <button className="rounded bg-primary text-white px-3 py-2">Send Invite</button>
+            <SubmitButton className="btn-primary" pendingLabel="Sending…">Send Invite</SubmitButton>
             <p className="text-xs text-muted mt-1">User will receive a magic link to sign in and complete profile.</p>
           </div>
         </form>
@@ -95,26 +113,26 @@ export default async function TeamsSettingsPage() {
         <form action={assignAction} className="grid grid-cols-1 sm:grid-cols-5 gap-2 items-end">
           <div>
             <label className="block text-xs text-muted">Email (or User ID)</label>
-            <input name="email" placeholder="user@example.com" className="w-full rounded bg-surface-2 border border-line px-3 py-2" />
+            <input name="email" placeholder="user@example.com" className="form-input" />
           </div>
           <div>
             <label className="block text-xs text-muted">User ID (optional)</label>
-            <input name="userId" placeholder="uuid" className="w-full rounded bg-surface-2 border border-line px-3 py-2" />
+            <input name="userId" placeholder="uuid" className="form-input" />
           </div>
           <div>
             <label className="block text-xs text-muted">Team</label>
-            <select name="teamId" className="w-full rounded bg-surface-2 border border-line px-3 py-2" required>
+            <select name="teamId" className="form-input" required>
               {(teams||[]).map((t: any) => (<option key={t.id} value={t.id}>{t.name}</option>))}
             </select>
           </div>
           <div>
             <label className="block text-xs text-muted">Role</label>
-            <select name="role" className="w-full rounded bg-surface-2 border border-line px-3 py-2">
+            <select name="role" className="form-input">
               {['TELECALLER','MANAGER','ADMIN'].map(r => (<option key={r} value={r}>{r}</option>))}
             </select>
           </div>
           <div>
-            <button className="rounded bg-primary text-white px-3 py-2">Assign</button>
+            <SubmitButton className="btn-primary" pendingLabel="Assigning…">Assign</SubmitButton>
           </div>
         </form>
       </section>
@@ -163,6 +181,61 @@ export default async function TeamsSettingsPage() {
             </tbody>
           </table>
         </div>
+      </section>
+
+      <section className="space-y-2">
+        <h2 className="font-medium">Teams</h2>
+        <form action={moveMembersAction} className="flex flex-wrap items-end gap-2 mb-2">
+          <div>
+            <label className="block text-xs text-muted">Move members from</label>
+            <select name="fromTeamId" className="form-input" required>
+              {(teams||[]).map((t: any) => (<option key={t.id} value={t.id}>{t.name}</option>))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs text-muted">to</label>
+            <select name="toTeamId" className="form-input" required>
+              {(teams||[]).map((t: any) => (<option key={t.id} value={t.id}>{t.name}</option>))}
+            </select>
+          </div>
+          <SubmitButton pendingLabel="Moving…" className="btn-primary">Move Members</SubmitButton>
+        </form>
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm">
+            <thead>
+              <tr className="text-left text-muted">
+                <th className="py-2 pr-4">Team</th>
+                <th className="py-2 pr-4">Members</th>
+                <th className="py-2 pr-4">Created</th>
+                <th className="py-2 pr-4">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(teams||[]).map((t: any) => {
+                const count = (members||[]).filter((m: any) => m.team_id === t.id).length
+                return (
+                <tr key={t.id} className="border-t border-white/10">
+                  <td className="py-2 pr-4">
+                    <form action={renameTeamAction} className="flex items-center gap-2">
+                      <input type="hidden" name="teamId" value={t.id} />
+                      <input name="name" defaultValue={t.name} className="form-input w-48" />
+                      <SubmitButton pendingLabel="Saving…" className="px-2 py-1 rounded bg-white/10 text-xs">Save</SubmitButton>
+                    </form>
+                  </td>
+                  <td className="py-2 pr-4">{count}</td>
+                  <td className="py-2 pr-4 whitespace-nowrap">{new Date(t.created_at).toLocaleDateString()}</td>
+                  <td className="py-2 pr-4">
+                    <form action={deleteTeamAction} onSubmit={(e)=>{ if(!confirm('Delete team? This will fail if any users or leads are still assigned.')) e.preventDefault() }}>
+                      <input type="hidden" name="teamId" value={t.id} />
+                      <SubmitButton pendingLabel="Deleting…" className="px-2 py-1 rounded bg-danger/80 text-white text-xs">Delete</SubmitButton>
+                    </form>
+                  </td>
+                </tr>
+              )})}
+            </tbody>
+          </table>
+        </div>
+        <p className="text-xs text-muted">Note: you can delete a team only when no users or leads reference it.</p>
       </section>
     </div>
   )
