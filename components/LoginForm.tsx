@@ -20,13 +20,29 @@ export default function LoginForm() {
     setError(null)
     const supabase = createBrowserClient()
     const redirect = params.get('redirect') || '/dashboard'
-    const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: `${location.origin}/auth/callback?redirect=${encodeURIComponent(redirect)}` } })
-    if (error) setError(error.message)
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: `${location.origin}/auth/callback?redirect=${encodeURIComponent(redirect)}`,
+        shouldCreateUser: false,
+      }
+    })
+    if (error) {
+      const msg = (error.message || '').toLowerCase()
+      if (msg.includes('signups not allowed') || msg.includes('not allowed')) {
+        setError('Sign‑ups are disabled. Ask an admin to invite you.')
+      } else if (msg.includes('user not found') || msg.includes('no user found')) {
+        setError('This email is not registered. Ask an admin to invite you.')
+      } else {
+        setError(error.message)
+      }
+    }
     else setSent(true)
   }
 
   return (
     <form onSubmit={onSubmit} className="space-y-3">
+      <p className="text-xs text-muted">Access is invite‑only. Only emails invited by an admin can sign in.</p>
       <label className="block text-sm">Work email</label>
       <input
         type="email"
@@ -39,7 +55,12 @@ export default function LoginForm() {
       />
       <button type="submit" className="touch-target w-full btn-primary font-medium">Send magic link</button>
       {error && <p role="alert" aria-live="polite" className="text-danger text-sm">{error}</p>}
-      {sent && <p aria-live="polite" className="text-success text-sm">Check your inbox and click the link to continue.</p>}
+      {sent && (
+        <div className="space-y-1">
+          <p aria-live="polite" className="text-success text-sm">If your email is registered, you’ll receive a sign‑in link.</p>
+          <p className="text-xs text-muted">Didn’t get it? Check spam or contact your admin for an invite.</p>
+        </div>
+      )}
     </form>
   )
 }
