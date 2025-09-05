@@ -2,35 +2,39 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { createDemoSupabase } from './demo'
 
+// Read-only client for Server Components/pages: never mutates cookies.
+// Prevents accidental sign-outs when Supabase SDK attempts to rotate/clear cookies
+// during a render (which can be disallowed in RSC and lead to cookie loss).
 export function createServerSupabase() {
-  if (process.env.NEXT_PUBLIC_DEMO === '1') {
-    return createDemoSupabase()
-  }
+  if (process.env.NEXT_PUBLIC_DEMO === '1') return createDemoSupabase()
   const cookieStore = cookies()
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value
-        },
-        set(name: string, value: string, options: CookieOptions) {
-          try {
-            cookieStore.set({ name, value, ...options })
-          } catch {
-            // In RSC render phase, Next.js disallows cookie mutations.
-            // Ignore here; cookies will be set in /auth/callback or server actions.
-          }
-        },
-        remove(name: string, options: CookieOptions) {
-          // expire cookie immediately to ensure removal across browsers
-          try {
-            cookieStore.set({ name, value: '', ...options, maxAge: 0 })
-          } catch {
-            // See note above about RSC render restrictions.
-          }
-        },
+        get(name: string) { return cookieStore.get(name)?.value },
+        // No-op in RSC to avoid clearing/rotating cookies unexpectedly
+        set(_name: string, _value: string, _options: CookieOptions) {},
+        remove(_name: string, _options: CookieOptions) {},
+      }
+    }
+  ) as any
+}
+
+// Mutable client for Route Handlers and Server Actions that legitimately
+// need to set/clear auth cookies (e.g., /auth/callback, /logout).
+export function createMutableServerSupabase() {
+  if (process.env.NEXT_PUBLIC_DEMO === '1') return createDemoSupabase()
+  const cookieStore = cookies()
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) { return cookieStore.get(name)?.value },
+        set(name: string, value: string, options: CookieOptions) { cookieStore.set({ name, value, ...options }) },
+        remove(name: string, options: CookieOptions) { cookieStore.set({ name, value: '', ...options, maxAge: 0 }) },
       }
     }
   )

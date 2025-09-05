@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createServerSupabase } from '@/lib/supabase/server'
+import { createMutableServerSupabase } from '@/lib/supabase/server'
 import { bootstrapProfile } from '@/actions/auth'
 
 export async function GET(request: Request) {
@@ -8,7 +8,7 @@ export async function GET(request: Request) {
   const redirect = searchParams.get('redirect') || '/dashboard'
 
   if (code) {
-    const supabase = createServerSupabase()
+    const supabase = createMutableServerSupabase()
     // This will set the auth cookies via our server client cookie adapter
     await supabase.auth.exchangeCodeForSession(code)
     // Ensure profile exists so the app can route without an extra onboarding step
