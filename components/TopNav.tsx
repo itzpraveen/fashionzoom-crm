@@ -30,7 +30,7 @@ export default function TopNav() {
           <source srcSet="/brand/logo-dark.png" media="(prefers-color-scheme: dark)" />
           <img src="/brand/logo-light.png" alt="FashionZoom CRM" className="h-6 w-auto" onError={(e)=>{ (e.currentTarget as HTMLImageElement).style.display='none' }} />
         </picture>
-        <span className="hidden sm:inline">FashionZoom CRM</span>
+        {/* Hide text label to avoid double branding */}
       </Link>
       <div className="ml-auto hidden sm:flex items-center gap-3">
         <input

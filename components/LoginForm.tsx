@@ -26,23 +26,20 @@ export default function LoginForm() {
   }
 
   return (
-    <div className="max-w-md mx-auto">
-      <h1 className="text-2xl font-semibold mb-4">Sign in</h1>
-      <p className="text-muted mb-4">Enter your email and we’ll send you a secure sign‑in link.</p>
-      <form onSubmit={onSubmit} className="space-y-3">
-        <label className="block text-sm">Email</label>
-        <input
-          type="email"
-          required
-          className="form-input"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          aria-label="Email address"
-        />
-        <button type="submit" className="touch-target w-full btn-primary font-medium">Email me a sign‑in link</button>
-        {error && <p role="alert" aria-live="polite" className="text-danger text-sm">{error}</p>}
-        {sent && <p aria-live="polite" className="text-success text-sm">Check your inbox and click the link to continue.</p>}
-      </form>
-    </div>
+    <form onSubmit={onSubmit} className="space-y-3">
+      <label className="block text-sm">Work email</label>
+      <input
+        type="email"
+        required
+        className="form-input"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        aria-label="Email address"
+        placeholder="you@company.com"
+      />
+      <button type="submit" className="touch-target w-full btn-primary font-medium">Send magic link</button>
+      {error && <p role="alert" aria-live="polite" className="text-danger text-sm">{error}</p>}
+      {sent && <p aria-live="polite" className="text-success text-sm">Check your inbox and click the link to continue.</p>}
+    </form>
   )
 }
