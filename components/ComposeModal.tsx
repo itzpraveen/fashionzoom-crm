@@ -15,12 +15,16 @@ export default function ComposeModal({ lead }: { lead: LeadLite }) {
   const [channel, setChannel] = useState<'WHATSAPP'|'SMS'|'EMAIL'>('WHATSAPP')
   const [templates, setTemplates] = useState<any[]>([])
   const [templateId, setTemplateId] = useState<string>('')
-  const supabase = createBrowserClient()
+  const supabase = useMemo(() => createBrowserClient(), [])
 
   useEffect(() => {
     if (!open) return
-    supabase.from('templates').select('*').order('created_at', { ascending: false }).then(({ data }) => setTemplates(data || []))
-  }, [open])
+    supabase
+      .from('templates')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .then(({ data }) => setTemplates(data || []))
+  }, [open, supabase])
 
   const selected = useMemo(() => templates.find(t => t.id === templateId), [templates, templateId])
   const preview = useMemo(() => selected ? renderTemplate(selected.body, lead) : '', [selected, lead])
@@ -81,4 +85,3 @@ export default function ComposeModal({ lead }: { lead: LeadLite }) {
     </>
   )
 }
-

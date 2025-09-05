@@ -14,7 +14,7 @@ export function EventProgramPicker({
   onChange: (v: { event_id?: string; program_id?: string }) => void
   compact?: boolean
 }) {
-  const supabase = createBrowserClient()
+  const supabase = useMemo(() => createBrowserClient(), [])
   const [events, setEvents] = useState<Event[]>([])
   const [programs, setPrograms] = useState<Program[]>([])
   const [eventId, setEventId] = useState<string | undefined>(value?.event_id)
@@ -22,14 +22,14 @@ export function EventProgramPicker({
 
   useEffect(() => {
     supabase.from('events').select('*').order('created_at', { ascending: false }).then(({ data }) => setEvents((data as any) || []))
-  }, [])
+  }, [supabase])
 
   useEffect(() => {
     if (!eventId) { setPrograms([]); setProgramId(undefined); return }
     supabase.from('programs').select('*').eq('event_id', eventId).order('created_at', { ascending: true }).then(({ data }) => setPrograms((data as any) || []))
-  }, [eventId])
+  }, [eventId, supabase])
 
-  useEffect(() => { onChange({ event_id: eventId, program_id: programId }) }, [eventId, programId])
+  useEffect(() => { onChange({ event_id: eventId, program_id: programId }) }, [eventId, programId, onChange])
 
   const eventLabel = (e: Event) => e.season ? `${e.name} (${e.season})` : e.name
 
@@ -52,4 +52,3 @@ export function EventProgramPicker({
     </div>
   )
 }
-

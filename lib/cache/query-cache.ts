@@ -149,7 +149,7 @@ export function useCachedQuery<T>(
     if (!state.data) {
       refetch()
     }
-  }, [options.enabled])
+  }, [options.enabled, state.data, refetch])
   
   return { ...state, refetch }
 }

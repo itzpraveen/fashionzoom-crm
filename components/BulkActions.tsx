@@ -225,7 +225,7 @@ function BulkUpdateModal({
               onChange={(e) => setUpdates({ ...updates, status: e.target.value })}
               className="w-full rounded bg-white/5 border border-white/10 px-3 py-2"
             >
-              <option value="">Don't change</option>
+              <option value="">Don&apos;t change</option>
               <option value="NEW">New</option>
               <option value="CONTACTED">Contacted</option>
               <option value="FOLLOW_UP">Follow Up</option>

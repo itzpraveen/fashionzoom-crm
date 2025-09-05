@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState, useTransition } from 'react'
+import { useCallback, useEffect, useMemo, useState, useTransition } from 'react'
 import { createBrowserClient } from '@/lib/supabase/client-with-retry'
 import { upsertEnrollment } from '@/actions/leads'
 
@@ -15,7 +15,7 @@ type Enrollment = {
 }
 
 export function LeadEnrollments({ leadId }: { leadId: string }) {
-  const supabase = createBrowserClient()
+  const supabase = useMemo(() => createBrowserClient(), [])
   const [items, setItems] = useState<Enrollment[]>([])
   const [events, setEvents] = useState<any[]>([])
   const [programs, setPrograms] = useState<any[]>([])
@@ -24,21 +24,21 @@ export function LeadEnrollments({ leadId }: { leadId: string }) {
   const [status, setStatus] = useState<Enrollment['status']>('INTERESTED')
   const [pending, start] = useTransition()
 
-  const load = async () => {
+  const load = useCallback(async () => {
     const { data } = await supabase
       .from('lead_enrollments')
       .select('*, programs(name), events(name, season)')
       .eq('lead_id', leadId)
       .order('created_at', { ascending: false })
     setItems((data as any) || [])
-  }
+  }, [supabase, leadId])
 
-  useEffect(() => { load() }, [leadId])
-  useEffect(() => { supabase.from('events').select('*').order('created_at', { ascending: false }).then(({ data }) => setEvents((data as any) || [])) }, [])
+  useEffect(() => { load() }, [load])
+  useEffect(() => { supabase.from('events').select('*').order('created_at', { ascending: false }).then(({ data }) => setEvents((data as any) || [])) }, [supabase])
   useEffect(() => {
     if (!eventId) { setPrograms([]); setProgramId(''); return }
     supabase.from('programs').select('*').eq('event_id', eventId).order('created_at', { ascending: true }).then(({ data }) => setPrograms((data as any) || []))
-  }, [eventId])
+  }, [eventId, supabase])
 
   return (
     <section className="space-y-2">
@@ -88,4 +88,3 @@ export function LeadEnrollments({ leadId }: { leadId: string }) {
     </section>
   )
 }
-

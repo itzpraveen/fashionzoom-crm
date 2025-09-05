@@ -25,12 +25,33 @@ export async function bootstrapProfile(input?: { full_name?: string; role?: 'TEL
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
   if (!url || !serviceKey) throw new Error('Missing server credentials')
 
+  // Read existing profile first to avoid downgrading an elevated role
+  const get = await fetch(`${url}/rest/v1/profiles?id=eq.${user.id}&select=id,role,full_name`, {
+    headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` }
+  })
+  if (get.ok) {
+    const arr: any[] = await get.json().catch(() => [])
+    const existing = arr?.[0]
+    if (existing) {
+      // Only patch full_name if missing; never change role here
+      const desiredName = input?.full_name ?? (user.user_metadata as any)?.name ?? null
+      if (!existing.full_name && desiredName) {
+        await fetch(`${url}/rest/v1/profiles?id=eq.${user.id}`, {
+          method: 'PATCH',
+          headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ full_name: desiredName })
+        }).catch(() => null)
+      }
+      return { ok: true }
+    }
+  }
+
+  // Create fresh profile with default role (or provided) only if missing
   const payload = {
     id: user.id,
     full_name: input?.full_name ?? (user.user_metadata as any)?.name ?? null,
     role: input?.role ?? 'TELECALLER',
   }
-
   const resp = await fetch(`${url}/rest/v1/profiles`, {
     method: 'POST',
     headers: {

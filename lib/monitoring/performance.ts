@@ -162,9 +162,8 @@ export function measureDatabaseQuery(queryName: string) {
 import React from 'react'
 
 export function usePerformance(componentName: string) {
-  if (typeof window === 'undefined') return
-  
   React.useEffect(() => {
+    if (typeof window === 'undefined') return
     const cleanup = measureComponentRender(componentName)
     return cleanup
   }, [componentName])

@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { createBrowserClient } from '@/lib/supabase/client-with-retry'
 import Link from 'next/link'
 
@@ -26,7 +26,7 @@ type Tile = { label: string; value: number }
  * ```
  */
 export function DashboardTiles() {
-  const supabase = createBrowserClient()
+  const supabase = useMemo(() => createBrowserClient(), [])
   const [tiles, setTiles] = useState<Tile[]>([
     { label: "Today's Calls", value: 0 },
     { label: 'Contact Rate', value: 0 },
@@ -53,7 +53,7 @@ export function DashboardTiles() {
     const sub1 = supabase.channel('realtime:activities').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'activities' }, load).subscribe()
     const sub2 = supabase.channel('realtime:followups').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'followups' }, load).subscribe()
     return () => { mounted = false; supabase.removeChannel(sub1); supabase.removeChannel(sub2) }
-  }, [])
+  }, [supabase])
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
