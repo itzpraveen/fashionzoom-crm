@@ -1,7 +1,9 @@
 "use client"
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Users, FileText, Upload, ListChecks, LogOut, Settings as SettingsIcon } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { LayoutDashboard, Users, CalendarClock, FileText, Upload, ListChecks, LogOut, Settings as SettingsIcon, Menu as MenuIcon } from 'lucide-react'
+import { createBrowserClient } from '@/lib/supabase/client'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import AuthNav from '@/components/AuthNav'
 
@@ -14,6 +16,13 @@ const mainItems: { href: string; label: string }[] = [
 export default function TopNav() {
   const pathname = usePathname()
   const router = useRouter()
+  const [loggedIn, setLoggedIn] = useState<boolean>(false)
+  useEffect(() => {
+    const supabase = createBrowserClient()
+    supabase.auth.getUser().then((res: any) => setLoggedIn(!!res?.data?.user))
+    const { data } = supabase.auth.onAuthStateChange((_evt: any, session: any) => setLoggedIn(!!session?.user))
+    return () => { data.subscription.unsubscribe() }
+  }, [])
   const onSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       const q = (e.target as HTMLInputElement).value.trim()
@@ -82,25 +91,37 @@ export default function TopNav() {
       {/* Mobile actions + menu */}
       <div className="ml-auto sm:hidden flex items-center gap-2">
         <ThemeToggle />
-        <details>
-          <summary className="list-none cursor-pointer rounded bg-white/10 px-3 py-2">Menu</summary>
-          <div className="mt-2 w-56 card p-2">
-            <nav className="flex flex-col text-sm" aria-label="Mobile navigation">
-              <Link className="px-2 py-1 rounded hover:bg-white/10" href="/dashboard" prefetch>Dashboard</Link>
-              <Link className="px-2 py-1 rounded hover:bg-white/10" href="/leads" prefetch>Leads</Link>
-              <Link className="px-2 py-1 rounded hover:bg-white/10" href="/followups" prefetch>Follow-ups</Link>
-              <details>
-                <summary className="px-2 py-1 rounded hover:bg-white/10 cursor-pointer inline-flex items-center gap-1">
-                  <SettingsIcon size={16} aria-hidden="true" /> Settings
-                </summary>
-                <div className="pl-2 mt-1 flex flex-col">
-                  <Link className="flex items-center gap-2 px-2 py-1 rounded hover:bg-white/10" href="/settings/teams" prefetch><Users size={14} /> Teams</Link>
-                  <Link className="flex items-center gap-2 px-2 py-1 rounded hover:bg-white/10" href="/settings/templates" prefetch><FileText size={14} /> Templates</Link>
-                  <Link className="flex items-center gap-2 px-2 py-1 rounded hover:bg-white/10" href="/import" prefetch><Upload size={14} /> Import</Link>
-                  <Link className="flex items-center gap-2 px-2 py-1 rounded hover:bg-white/10" href="/settings/assignment-rules" prefetch><ListChecks size={14} /> Assignment Rules</Link>
-                </div>
-              </details>
-              <div className="border-t border-white/10 my-1" />
+        <details className="relative">
+          <summary className="list-none cursor-pointer rounded bg-white/10 px-3 py-2 inline-flex items-center gap-2">
+            <MenuIcon size={16} aria-hidden="true" /> Menu
+          </summary>
+          <div className="absolute right-0 mt-2 w-64 rounded-lg border border-white/10 bg-surface shadow-xl shadow-black/30 p-2 z-50">
+            <nav className="flex flex-col text-base" aria-label="Mobile navigation">
+              {loggedIn && (
+                <>
+                  <Link className="flex items-center gap-2 px-3 py-2 rounded hover:bg-white/10" href="/dashboard" prefetch>
+                    <LayoutDashboard size={16} /> Dashboard
+                  </Link>
+                  <Link className="flex items-center gap-2 px-3 py-2 rounded hover:bg-white/10" href="/leads" prefetch>
+                    <Users size={16} /> Leads
+                  </Link>
+                  <Link className="flex items-center gap-2 px-3 py-2 rounded hover:bg-white/10" href="/followups" prefetch>
+                    <CalendarClock size={16} /> Follow-ups
+                  </Link>
+                  <details>
+                    <summary className="px-3 py-2 rounded hover:bg-white/10 cursor-pointer inline-flex items-center gap-2">
+                      <SettingsIcon size={16} /> Settings
+                    </summary>
+                    <div className="pl-3 mt-1 flex flex-col">
+                      <Link className="flex items-center gap-2 px-3 py-1.5 rounded hover:bg-white/10" href="/settings/teams" prefetch><Users size={14} /> Teams</Link>
+                      <Link className="flex items-center gap-2 px-3 py-1.5 rounded hover:bg-white/10" href="/settings/templates" prefetch><FileText size={14} /> Templates</Link>
+                      <Link className="flex items-center gap-2 px-3 py-1.5 rounded hover:bg-white/10" href="/import" prefetch><Upload size={14} /> Import</Link>
+                      <Link className="flex items-center gap-2 px-3 py-1.5 rounded hover:bg-white/10" href="/settings/assignment-rules" prefetch><ListChecks size={14} /> Assignment Rules</Link>
+                    </div>
+                  </details>
+                  <div className="border-t border-white/10 my-1" />
+                </>
+              )}
               {/* Login/Logout entry */}
               <AuthNav />
             </nav>
