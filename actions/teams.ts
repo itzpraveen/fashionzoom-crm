@@ -67,3 +67,44 @@ export async function assignUserToTeam(input: { email?: string; userId?: string;
   if (!r.ok) throw new Error('Failed to assign user')
   return { ok: true }
 }
+
+// Promote a user to ADMIN role. Caller must be ADMIN.
+export async function makeAdmin(input: { email?: string; userId?: string }) {
+  await assertAdmin()
+  const { email, userId } = z.object({
+    email: z.string().email().optional(),
+    userId: z.string().uuid().optional()
+  }).parse(input)
+
+  let uid = userId ?? null
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!serviceKey) throw new Error('Service key missing')
+
+  // Resolve user ID by email if needed
+  if (!uid && email) {
+    const resp = await fetch(`${url}/auth/v1/admin/users?email=${encodeURIComponent(email)}`, {
+      headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` }
+    })
+    if (resp.ok) {
+      const json: any = await resp.json().catch(() => null)
+      uid = json?.users?.[0]?.id ?? null
+    }
+  }
+  if (!uid) throw new Error('User not found. Provide a valid email or user ID.')
+
+  // Upsert profile with ADMIN role (preserves other fields via merge resolution)
+  const payload: any = { id: uid, role: 'ADMIN' }
+  const r = await fetch(`${url}/rest/v1/profiles`, {
+    method: 'POST',
+    headers: {
+      apikey: serviceKey,
+      Authorization: `Bearer ${serviceKey}`,
+      'Content-Type': 'application/json',
+      Prefer: 'resolution=merge-duplicates,return=minimal'
+    },
+    body: JSON.stringify(payload)
+  })
+  if (!r.ok) throw new Error('Failed to promote user to admin')
+  return { ok: true }
+}
