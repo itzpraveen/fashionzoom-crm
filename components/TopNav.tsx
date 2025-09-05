@@ -42,53 +42,55 @@ export default function TopNav() {
         {/* Hide text label to avoid double branding */}
       </Link>
       {/* Desktop nav */}
-      <div className="ml-auto hidden sm:flex items-center gap-3">
-        <input
-          type="search"
-          placeholder="Search leads…"
-          className="form-input w-56"
-          onKeyDown={onSearch}
-        />
-        {mainItems.map(({ href, label }) => {
-          const active = pathname?.startsWith(href)
-          return (
-            <Link
-              key={href}
-              href={href}
-              aria-current={active ? 'page' : undefined}
-              className={active ? 'text-primary' : 'hover:underline'}
-              prefetch
-            >
-              {label}
-            </Link>
-          )
-        })}
-        <details className="relative">
-          <summary className="list-none cursor-pointer hover:underline inline-flex items-center gap-1">
-            <SettingsIcon size={16} aria-hidden="true" /> Settings
-          </summary>
-          <div className="absolute right-0 mt-2 min-w-56 rounded-lg border border-white/10 bg-surface shadow-xl shadow-black/30 p-1 z-50">
-            <nav className="flex flex-col text-sm" aria-label="Settings" role="menu">
-              <Link className="flex items-center gap-2 px-3 py-2 rounded hover:bg-white/10" href="/settings/teams" prefetch role="menuitem">
-                <Users size={16} aria-hidden="true" /> <span>Teams</span>
+      {loggedIn && !isAuthRoute && (
+        <div className="ml-auto hidden sm:flex items-center gap-3">
+          <input
+            type="search"
+            placeholder="Search leads…"
+            className="form-input w-56"
+            onKeyDown={onSearch}
+          />
+          {mainItems.map(({ href, label }) => {
+            const active = pathname?.startsWith(href)
+            return (
+              <Link
+                key={href}
+                href={href}
+                aria-current={active ? 'page' : undefined}
+                className={active ? 'text-primary' : 'hover:underline'}
+                prefetch
+              >
+                {label}
               </Link>
-              <Link className="flex items-center gap-2 px-3 py-2 rounded hover:bg-white/10" href="/settings/templates" prefetch role="menuitem">
-                <FileText size={16} aria-hidden="true" /> <span>Templates</span>
-              </Link>
-              <Link className="flex items-center gap-2 px-3 py-2 rounded hover:bg-white/10" href="/import" prefetch role="menuitem">
-                <Upload size={16} aria-hidden="true" /> <span>Import</span>
-              </Link>
-              <Link className="flex items-center gap-2 px-3 py-2 rounded hover:bg-white/10" href="/settings/assignment-rules" prefetch role="menuitem">
-                <ListChecks size={16} aria-hidden="true" /> <span>Assignment Rules</span>
-              </Link>
-              <div className="my-1 border-t border-white/10" />
-              <Link className="flex items-center gap-2 px-3 py-2 rounded hover:bg-danger/20 text-danger" href="/logout" prefetch role="menuitem">
-                <LogOut size={16} aria-hidden="true" /> <span>Logout</span>
-              </Link>
-            </nav>
-          </div>
-        </details>
-      </div>
+            )
+          })}
+          <details className="relative">
+            <summary className="list-none cursor-pointer hover:underline inline-flex items-center gap-1">
+              <SettingsIcon size={16} aria-hidden="true" /> Settings
+            </summary>
+            <div className="absolute right-0 mt-2 min-w-56 rounded-lg border border-white/10 bg-surface shadow-xl shadow-black/30 p-1 z-50">
+              <nav className="flex flex-col text-sm" aria-label="Settings" role="menu">
+                <Link className="flex items-center gap-2 px-3 py-2 rounded hover:bg-white/10" href="/settings/teams" prefetch role="menuitem">
+                  <Users size={16} aria-hidden="true" /> <span>Teams</span>
+                </Link>
+                <Link className="flex items-center gap-2 px-3 py-2 rounded hover:bg-white/10" href="/settings/templates" prefetch role="menuitem">
+                  <FileText size={16} aria-hidden="true" /> <span>Templates</span>
+                </Link>
+                <Link className="flex items-center gap-2 px-3 py-2 rounded hover:bg-white/10" href="/import" prefetch role="menuitem">
+                  <Upload size={16} aria-hidden="true" /> <span>Import</span>
+                </Link>
+                <Link className="flex items-center gap-2 px-3 py-2 rounded hover:bg-white/10" href="/settings/assignment-rules" prefetch role="menuitem">
+                  <ListChecks size={16} aria-hidden="true" /> <span>Assignment Rules</span>
+                </Link>
+                <div className="my-1 border-t border-white/10" />
+                <Link className="flex items-center gap-2 px-3 py-2 rounded hover:bg-danger/20 text-danger" href="/logout" prefetch role="menuitem">
+                  <LogOut size={16} aria-hidden="true" /> <span>Logout</span>
+                </Link>
+              </nav>
+            </div>
+          </details>
+        </div>
+      )}
       {/* Mobile actions + menu */}
       <div className="ml-auto sm:hidden flex items-center gap-2">
         <ThemeToggle />
