@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useState } from 'react'
 import { createBrowserClient } from '@/lib/supabase/client-with-retry'
+import Link from 'next/link'
 
 type Tile = { label: string; value: number }
 
@@ -56,13 +57,43 @@ export function DashboardTiles() {
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-      {tiles.map(t => (
-        <div key={t.label} className="rounded border border-white/10 p-3">
-          <div className="text-xs text-muted">{t.label}</div>
-          <div className="text-2xl font-semibold">{t.value}</div>
-        </div>
-      ))}
+      {tiles.map(t => {
+        // Provide sensible deep links for tiles
+        let href: string | null = null
+        switch (t.label) {
+          case "Today's Calls":
+          case 'Contact Rate':
+            href = '/dashboard/performance'
+            break
+          case 'Overdue Follow-ups':
+            href = '/dashboard/queue?due=today'
+            break
+          case 'Leads Created':
+            href = '/leads?due=today'
+            break
+        }
+        const content = (
+          <>
+            <div className="text-xs text-muted">{t.label}</div>
+            <div className="text-2xl font-semibold">{t.value}</div>
+          </>
+        )
+        return href ? (
+          <Link
+            key={t.label}
+            href={href}
+            className="rounded border border-white/10 p-3 hover:bg-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
+            aria-label={`Open ${t.label}`}
+            prefetch
+          >
+            {content}
+          </Link>
+        ) : (
+          <div key={t.label} className="rounded border border-white/10 p-3">
+            {content}
+          </div>
+        )
+      })}
     </div>
   )
 }
-
