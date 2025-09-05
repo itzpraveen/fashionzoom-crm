@@ -1,6 +1,6 @@
 import { createServerSupabase } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { createTeam, assignUserToTeam } from '@/actions/teams'
+import { createTeam, assignUserToTeam, inviteUser } from '@/actions/teams'
 
 export const dynamic = 'force-dynamic'
 
@@ -27,6 +27,13 @@ export default async function TeamsSettingsPage() {
     const role = String(formData.get('role') || 'TELECALLER') as any
     await assignUserToTeam({ email: email || undefined, userId: uid || undefined, teamId, role })
   }
+  async function inviteAction(formData: FormData) {
+    'use server'
+    const email = String(formData.get('email') || '')
+    const teamId = String(formData.get('teamId') || '')
+    const role = String(formData.get('role') || 'TELECALLER') as any
+    await inviteUser({ email, teamId: teamId || undefined, role })
+  }
 
   return (
     <div className="space-y-6">
@@ -37,6 +44,33 @@ export default async function TeamsSettingsPage() {
         <form action={createTeamAction} className="flex gap-2">
           <input name="name" placeholder="Team name" className="rounded bg-surface-2 border border-line px-3 py-2" required />
           <button className="rounded bg-primary text-white px-3 py-2">Create</button>
+        </form>
+      </section>
+
+      <section className="space-y-2">
+        <h2 className="font-medium">Invite User</h2>
+        <form action={inviteAction} className="grid grid-cols-1 sm:grid-cols-5 gap-2 items-end">
+          <div>
+            <label className="block text-xs text-muted">Email</label>
+            <input name="email" type="email" placeholder="user@example.com" className="w-full rounded bg-surface-2 border border-line px-3 py-2" required />
+          </div>
+          <div>
+            <label className="block text-xs text-muted">Team (optional)</label>
+            <select name="teamId" className="w-full rounded bg-surface-2 border border-line px-3 py-2">
+              <option value="">—</option>
+              {(teams||[]).map((t: any) => (<option key={t.id} value={t.id}>{t.name}</option>))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs text-muted">Role</label>
+            <select name="role" className="w-full rounded bg-surface-2 border border-line px-3 py-2">
+              {['TELECALLER','MANAGER','ADMIN'].map(r => (<option key={r} value={r}>{r}</option>))}
+            </select>
+          </div>
+          <div className="sm:col-span-2">
+            <button className="rounded bg-primary text-white px-3 py-2">Send Invite</button>
+            <p className="text-xs text-muted mt-1">User will receive a magic link to sign in and complete profile.</p>
+          </div>
         </form>
       </section>
 

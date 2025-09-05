@@ -1,6 +1,7 @@
 "use server"
 import { z } from 'zod'
 import { createServerSupabase } from '@/lib/supabase/server'
+import { createClient } from '@supabase/supabase-js'
 
 async function assertAdmin() {
   const supabase = createServerSupabase()
@@ -106,5 +107,58 @@ export async function makeAdmin(input: { email?: string; userId?: string }) {
     body: JSON.stringify(payload)
   })
   if (!r.ok) throw new Error('Failed to promote user to admin')
+  return { ok: true }
+}
+
+// Invite a user by email and assign role/team. Sends an invite email via Supabase Auth.
+export async function inviteUser(input: { email: string; teamId?: string; role?: 'TELECALLER'|'MANAGER'|'ADMIN'; redirectTo?: string }) {
+  await assertAdmin()
+  const { email, teamId, role, redirectTo } = z.object({
+    email: z.string().email(),
+    teamId: z.string().uuid().optional(),
+    role: z.enum(['TELECALLER','MANAGER','ADMIN']).optional(),
+    redirectTo: z.string().url().optional()
+  }).parse(input)
+
+  // Demo mode: seed in-memory profile only
+  if (process.env.NEXT_PUBLIC_DEMO === '1') {
+    const { upsertRow } = await import('@/lib/demo/store')
+    const id = 'demo-' + Math.random().toString(36).slice(2)
+    upsertRow('profiles', { id, full_name: email, role: role || 'TELECALLER', team_id: teamId || null }, 'id', false)
+    return { ok: true }
+  }
+
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!serviceKey) throw new Error('Service key missing')
+
+  const admin = createClient(url, serviceKey, {
+    auth: { autoRefreshToken: false, persistSession: false }
+  })
+
+  const site = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || 'http://localhost:3000'
+  const cb = redirectTo || `${site}/auth/callback?redirect=${encodeURIComponent('/dashboard')}`
+
+  const { data: invited, error: inviteError } = await admin.auth.admin.inviteUserByEmail(email, { redirectTo: cb })
+  if (inviteError) throw inviteError
+
+  const userId = invited?.user?.id
+  if (!userId) {
+    throw new Error('Invite created but no user id returned')
+  }
+
+  // Upsert profile with role/team
+  const resp = await fetch(`${url}/rest/v1/profiles`, {
+    method: 'POST',
+    headers: {
+      apikey: serviceKey,
+      Authorization: `Bearer ${serviceKey}`,
+      'Content-Type': 'application/json',
+      Prefer: 'resolution=merge-duplicates,return=minimal'
+    },
+    body: JSON.stringify({ id: userId, role: role || 'TELECALLER', team_id: teamId || null })
+  })
+  if (!resp.ok) throw new Error('Failed to set user role/team')
+
   return { ok: true }
 }
