@@ -5,17 +5,22 @@
 @layer components {
   .card {
     @apply rounded-lg border border-line shadow-sm;
-    background-color: color-mix(in srgb, var(--surface) 85%, transparent);
+    background-color: color-mix(in srgb, var(--surface) 95%, white 5%);
   }
   .btn-primary {
     @apply rounded-md px-3 py-2 shadow-sm text-white; 
     background-color: var(--primary);
   }
-  .btn-primary:hover { filter: brightness(0.95); }
-  .btn-primary:active { filter: brightness(0.9); transform: translateY(1px); }
+  .btn-primary:hover { filter: brightness(0.98); }
+  .btn-primary:active { filter: brightness(0.94); transform: translateY(1px); }
+  .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
   .form-input {
     @apply w-full rounded-md bg-surface-2 border border-line text-sm focus:outline-none;
     padding: 0.625rem 0.75rem; /* base: a bit larger for mobile */
+  }
+  .form-input:focus-visible {
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 20%, transparent);
+    border-color: color-mix(in oklab, var(--primary) 60%, var(--border) 40%);
   }
   @screen lg {
     .form-input { padding: 0.5rem 0.625rem; } /* denser on desktop */
@@ -24,13 +29,13 @@
 
 /* Light theme defaults */
 :root {
-  --bg: #ffffff;
+  --bg: #f8fafc;            /* softer page background */
   --fg: #0b1220;
   --muted: #5b6b83;
-  --surface: #ffffff; /* panel */
-  --surface-2: #f8fafc; /* inputs */
-  --border: #e5e7eb;
-  --primary: #F81F2E; /* brand red */
+  --surface: #ffffff;       /* panel */
+  --surface-2: #f3f6fb;     /* inputs */
+  --border: #e2e8f0;
+  --primary: #F81F2E;       /* brand red */
   --danger: #dc2626;
   --warning: #d97706;
   --success: #059669;
@@ -53,12 +58,12 @@
 
 /* Explicit theme override */
 [data-theme="light"] {
-  --bg: #ffffff;
+  --bg: #f8fafc;
   --fg: #0b1220;
   --muted: #5b6b83;
   --surface: #ffffff;
-  --surface-2: #f8fafc;
-  --border: #e5e7eb;
+  --surface-2: #f3f6fb;
+  --border: #e2e8f0;
   --primary: #F81F2E;
   --danger: #dc2626;
   --warning: #d97706;
@@ -89,7 +94,7 @@ body {
 
 /* Modern background flourish */
 .bg-grid {
-  background-image: radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--muted) 20%, transparent) 1px, transparent 0);
+  background-image: radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--muted) 12%, transparent) 1px, transparent 0);
   background-size: 24px 24px;
 }
 /* Improve focus visibility for accessibility */
