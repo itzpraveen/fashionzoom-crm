@@ -14,7 +14,7 @@ const PAGE_SIZE = 20
 export default async function LeadsPage({
   searchParams,
 }: {
-  searchParams: { page?: string; status?: string; search?: string }
+  searchParams: { page?: string; status?: string; search?: string; due?: string }
 }) {
   const supabase = createServerSupabase()
   const { data: { user } } = await supabase.auth.getUser()
@@ -44,6 +44,12 @@ export default async function LeadsPage({
   
   // Sort by priority: overdue first, then due soon, then new
   const now = new Date().toISOString()
+  // Optional: today filter
+  if (searchParams.due === 'today') {
+    const start = new Date(); start.setHours(0,0,0,0)
+    const end = new Date(); end.setHours(23,59,59,999)
+    query = query.gte('next_follow_up_at', start.toISOString()).lt('next_follow_up_at', end.toISOString())
+  }
   query = query.order('next_follow_up_at', { ascending: true, nullsFirst: false })
   
   const { data: leads, count, error } = await query
@@ -65,7 +71,7 @@ export default async function LeadsPage({
       {/* Add Lead CTA and Filters */}
       <div className="flex items-center justify-between gap-4">
         <AddLeadButton />
-        <LeadsFilters status={searchParams.status} search={searchParams.search} />
+        <LeadsFilters status={searchParams.status} search={searchParams.search} due={searchParams.due} />
       </div>
       
       {leads?.length === 0 ? (
