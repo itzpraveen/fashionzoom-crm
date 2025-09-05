@@ -150,7 +150,8 @@ export default async function TeamsSettingsPage() {
 
       <section className="space-y-2">
         <h2 className="font-medium">Members</h2>
-        <div className="overflow-x-auto">
+        {/* Desktop table */}
+        <div className="overflow-x-auto hidden sm:block">
           <table className="min-w-full text-sm">
             <thead>
               <tr className="text-left text-muted">
@@ -192,6 +193,37 @@ export default async function TeamsSettingsPage() {
             </tbody>
           </table>
         </div>
+        {/* Mobile cards */}
+        <div className="sm:hidden space-y-2">
+          {(members||[]).map((m: any) => (
+            <div key={m.id} className="card p-3 border border-line rounded">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <div className="font-medium">{m.full_name || '—'}</div>
+                  <div className="text-xs text-muted">{m.role} • {(teams||[]).find((t:any)=>t.id===m.team_id)?.name || '—'}</div>
+                  <div className="text-[11px] text-muted font-mono mt-1 break-all">{m.id}</div>
+                </div>
+              </div>
+              <div className="mt-2 flex flex-wrap gap-2">
+                <form action={resendAction}>
+                  <input type="hidden" name="email" value={m.email || ''} />
+                  <input type="hidden" name="userId" value={m.id} />
+                  <button className="touch-target px-3 py-2 rounded bg-white/10 text-xs">Resend invite</button>
+                </form>
+                <form action={removeTeamAction}>
+                  <input type="hidden" name="userId" value={m.id} />
+                  <button className="touch-target px-3 py-2 rounded bg-white/10 text-xs">Remove</button>
+                </form>
+                {m.role !== 'TELECALLER' && (
+                  <form action={demoteAction}>
+                    <input type="hidden" name="userId" value={m.id} />
+                    <button className="touch-target px-3 py-2 rounded bg-white/10 text-xs">Demote</button>
+                  </form>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
       </section>
 
       <section className="space-y-2">
@@ -211,7 +243,8 @@ export default async function TeamsSettingsPage() {
           </div>
           <SubmitButton pendingLabel="Moving…" className="btn-primary">Move Members</SubmitButton>
         </form>
-        <div className="overflow-x-auto">
+        {/* Desktop table */}
+        <div className="overflow-x-auto hidden sm:block">
           <table className="min-w-full text-sm">
             <thead>
               <tr className="text-left text-muted">
@@ -251,6 +284,36 @@ export default async function TeamsSettingsPage() {
               )})}
             </tbody>
           </table>
+        </div>
+        {/* Mobile cards */}
+        <div className="sm:hidden space-y-2">
+          {(teams||[]).map((t: any) => {
+            const count = (members||[]).filter((m:any)=>m.team_id===t.id).length
+            return (
+              <div key={t.id} className="card p-3 border border-line rounded">
+                <form action={renameTeamAction} className="space-y-2">
+                  <input type="hidden" name="teamId" value={t.id} />
+                  <div className="flex items-center gap-2">
+                    <input name="name" defaultValue={t.name} className="form-input flex-1" />
+                    <SubmitButton pendingLabel="Saving…" className="px-3 py-2 rounded bg-white/10 text-xs">Save</SubmitButton>
+                  </div>
+                </form>
+                <div className="text-xs text-muted mt-1">Members: {count} • {new Date(t.created_at).toLocaleDateString()}</div>
+                <div className="mt-2">
+                  <form action={deleteTeamAction} id={`m-delete-team-${t.id}`}>
+                    <input type="hidden" name="teamId" value={t.id} />
+                  </form>
+                  <ConfirmSubmit
+                    formId={`m-delete-team-${t.id}`}
+                    className="touch-target px-3 py-2 rounded bg-danger/80 text-white text-xs"
+                    confirmMessage="Delete team? This will fail if any users or leads are still assigned."
+                  >
+                    Delete team
+                  </ConfirmSubmit>
+                </div>
+              </div>
+            )
+          })}
         </div>
         <p className="text-xs text-muted">Note: you can delete a team only when no users or leads reference it.</p>
       </section>
