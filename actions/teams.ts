@@ -1,6 +1,7 @@
 "use server"
 import { z } from 'zod'
 import { createServerSupabase } from '@/lib/supabase/server'
+import { revalidatePath } from 'next/cache'
 import { createClient } from '@supabase/supabase-js'
 
 async function assertAdmin() {
@@ -160,5 +161,85 @@ export async function inviteUser(input: { email: string; teamId?: string; role?:
   })
   if (!resp.ok) throw new Error('Failed to set user role/team')
 
+  revalidatePath('/settings/teams')
+  return { ok: true }
+}
+
+// Resend invite or send magic link to an existing user
+export async function resendInvite(input: { email?: string; userId?: string; redirectTo?: string }) {
+  await assertAdmin()
+  const { email, userId, redirectTo } = z.object({
+    email: z.string().email().optional(),
+    userId: z.string().uuid().optional(),
+    redirectTo: z.string().url().optional()
+  }).parse(input)
+
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!serviceKey) throw new Error('Service key missing')
+
+  // Resolve email if only userId provided
+  let targetEmail = email || ''
+  if (!targetEmail && userId) {
+    const r = await fetch(`${url}/auth/v1/admin/users/${userId}`, {
+      headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` }
+    })
+    if (r.ok) {
+      const u: any = await r.json().catch(() => null)
+      targetEmail = u?.user?.email || ''
+    }
+  }
+  if (!targetEmail) throw new Error('User email not found')
+
+  const admin = createClient(url, serviceKey, {
+    auth: { autoRefreshToken: false, persistSession: false }
+  })
+  const site = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || 'http://localhost:3000'
+  const cb = redirectTo || `${site}/auth/callback?redirect=${encodeURIComponent('/dashboard')}`
+
+  const { error } = await admin.auth.admin.inviteUserByEmail(targetEmail, { redirectTo: cb })
+  if (error) throw error
+  return { ok: true }
+}
+
+// Remove user from team (sets team_id to null)
+export async function removeUserFromTeam(input: { userId: string }) {
+  await assertAdmin()
+  const { userId } = z.object({ userId: z.string().uuid() }).parse(input)
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+  const r = await fetch(`${url}/rest/v1/profiles`, {
+    method: 'POST',
+    headers: {
+      apikey: serviceKey,
+      Authorization: `Bearer ${serviceKey}`,
+      'Content-Type': 'application/json',
+      Prefer: 'resolution=merge-duplicates,return=minimal'
+    },
+    body: JSON.stringify({ id: userId, team_id: null })
+  })
+  if (!r.ok) throw new Error('Failed to remove from team')
+  revalidatePath('/settings/teams')
+  return { ok: true }
+}
+
+// Update role only (e.g., demote to TELECALLER)
+export async function setUserRole(input: { userId: string; role: 'TELECALLER'|'MANAGER'|'ADMIN' }) {
+  await assertAdmin()
+  const { userId, role } = z.object({ userId: z.string().uuid(), role: z.enum(['TELECALLER','MANAGER','ADMIN']) }).parse(input)
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+  const r = await fetch(`${url}/rest/v1/profiles`, {
+    method: 'POST',
+    headers: {
+      apikey: serviceKey,
+      Authorization: `Bearer ${serviceKey}`,
+      'Content-Type': 'application/json',
+      Prefer: 'resolution=merge-duplicates,return=minimal'
+    },
+    body: JSON.stringify({ id: userId, role })
+  })
+  if (!r.ok) throw new Error('Failed to update role')
+  revalidatePath('/settings/teams')
   return { ok: true }
 }

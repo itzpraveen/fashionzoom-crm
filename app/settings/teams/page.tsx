@@ -1,6 +1,6 @@
 import { createServerSupabase } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { createTeam, assignUserToTeam, inviteUser } from '@/actions/teams'
+import { createTeam, assignUserToTeam, inviteUser, resendInvite, removeUserFromTeam, setUserRole } from '@/actions/teams'
 
 export const dynamic = 'force-dynamic'
 
@@ -33,6 +33,22 @@ export default async function TeamsSettingsPage() {
     const teamId = String(formData.get('teamId') || '')
     const role = String(formData.get('role') || 'TELECALLER') as any
     await inviteUser({ email, teamId: teamId || undefined, role })
+  }
+  async function resendAction(formData: FormData) {
+    'use server'
+    const email = String(formData.get('email') || '')
+    const userId = String(formData.get('userId') || '')
+    await resendInvite({ email: email || undefined, userId: userId || undefined })
+  }
+  async function removeTeamAction(formData: FormData) {
+    'use server'
+    const uid = String(formData.get('userId') || '')
+    await removeUserFromTeam({ userId: uid })
+  }
+  async function demoteAction(formData: FormData) {
+    'use server'
+    const uid = String(formData.get('userId') || '')
+    await setUserRole({ userId: uid, role: 'TELECALLER' })
   }
 
   return (
@@ -113,6 +129,7 @@ export default async function TeamsSettingsPage() {
                 <th className="py-2 pr-4">Role</th>
                 <th className="py-2 pr-4">Team</th>
                 <th className="py-2 pr-4">User ID</th>
+                <th className="py-2 pr-4">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -122,6 +139,25 @@ export default async function TeamsSettingsPage() {
                   <td className="py-2 pr-4">{m.role}</td>
                   <td className="py-2 pr-4">{(teams||[]).find((t: any)=>t.id===m.team_id)?.name || '—'}</td>
                   <td className="py-2 pr-4 font-mono text-xs">{m.id}</td>
+                  <td className="py-2 pr-4">
+                    <div className="flex flex-wrap gap-2">
+                      <form action={resendAction}>
+                        <input type="hidden" name="email" value={m.email || ''} />
+                        <input type="hidden" name="userId" value={m.id} />
+                        <button className="px-2 py-1 rounded bg-white/10 text-xs">Resend invite</button>
+                      </form>
+                      <form action={removeTeamAction}>
+                        <input type="hidden" name="userId" value={m.id} />
+                        <button className="px-2 py-1 rounded bg-white/10 text-xs">Remove from team</button>
+                      </form>
+                      {m.role !== 'TELECALLER' && (
+                        <form action={demoteAction}>
+                          <input type="hidden" name="userId" value={m.id} />
+                          <button className="px-2 py-1 rounded bg-white/10 text-xs">Demote to Telecaller</button>
+                        </form>
+                      )}
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
