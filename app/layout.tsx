@@ -1,10 +1,10 @@
 import './globals.css'
 import type { ReactNode } from 'react'
-import Link from 'next/link'
 // PWA handling is feature-flagged for dev convenience
 import SWUnregister from './sw-unregister'
 import SWRegister from './sw-register'
 import FooterNav from '@/components/FooterNav'
+import TopNav from '@/components/TopNav'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import AuthNav from '@/components/AuthNav'
 // Keep layout static for fast navigations; do not fetch auth here
@@ -39,26 +39,11 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <a href="#content" className="visually-hidden focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:bg-primary focus:text-white focus:px-3 focus:py-2 focus:rounded">Skip to content</a>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         <header className="sticky top-0 z-30 border-b border-white/10 bg-gradient-to-b from-black/10 to-transparent backdrop-blur">
-          <nav aria-label="Top" className="mx-auto max-w-6xl px-4 py-3 flex items-center gap-4 text-sm">
-            <Link href="/leads" className="font-semibold tracking-tight flex items-center gap-2">
-              <span className="inline-flex h-6 w-6 items-center justify-center rounded bg-primary/20 text-primary font-bold">FZ</span>
-              FashionZoom CRM
-            </Link>
-            <div className="ml-auto hidden sm:flex items-center gap-3">
-              <Link className="hover:underline" href="/dashboard">Dashboard</Link>
-              <Link className="hover:underline" href="/leads">Leads</Link>
-              <Link className="hover:underline" href="/followups">Follow-ups</Link>
-              <Link className="hover:underline" href="/import">Import</Link>
-              <Link className="hover:underline" href="/settings/templates">Settings</Link>
-              <Link className="hover:underline" href="/settings/teams">Teams</Link>
-              <AuthNav />
-              <ThemeToggle />
-            </div>
-            <div className="ml-auto sm:hidden">
-              <AuthNav />
-              <ThemeToggle />
-            </div>
-          </nav>
+          <TopNav />
+          <div className="mx-auto max-w-6xl px-4 pb-2 flex items-center justify-end sm:hidden gap-3">
+            <AuthNav />
+            <ThemeToggle />
+          </div>
         </header>
         <main id="content" role="main" className="mx-auto max-w-6xl px-4 py-4 pb-20 sm:pb-6">
           {children}
