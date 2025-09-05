@@ -1,6 +1,6 @@
 "use client"
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 
 type Item = { href: string; label: string }
 const items: Item[] = [
@@ -14,6 +14,14 @@ const items: Item[] = [
 
 export default function TopNav() {
   const pathname = usePathname()
+  const router = useRouter()
+  const onSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      const q = (e.target as HTMLInputElement).value.trim()
+      if (!q) return
+      router.push(`/leads?search=${encodeURIComponent(q)}&view=table`)
+    }
+  }
   return (
     <nav aria-label="Top" className="mx-auto max-w-6xl px-4 py-2 flex items-center gap-3 text-sm">
       <Link href="/dashboard" className="font-semibold tracking-tight flex items-center gap-2">
@@ -25,6 +33,12 @@ export default function TopNav() {
         <span className="hidden sm:inline">FashionZoom CRM</span>
       </Link>
       <div className="ml-auto hidden sm:flex items-center gap-3">
+        <input
+          type="search"
+          placeholder="Search leads…"
+          className="form-input w-56"
+          onKeyDown={onSearch}
+        />
         {items.map(({ href, label }) => {
           const active = pathname?.startsWith(href)
           return (

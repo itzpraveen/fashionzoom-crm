@@ -31,7 +31,7 @@ export default function LeadsTable({ leads, role }: { leads: LeadRow[]; role: 'T
     return n.replace(/(\d{3})\d+(\d{2})/, (_, a, z) => `${a}•••${z}`)
   }
   return (
-    <DataTable columns={["Name","Phone","City","Source","Status","Score","Next","Last Contacted","Owner","Remarks","Actions"]}>
+    <DataTable columns={["Name","Phone","City","Source","Status","Score","Next","Last Contacted","Disposition","Owner","Remarks","Actions"]}>
       {leads.map((l) => {
         const phoneDisp = mask(l.primary_phone)
         const wa = waLink(l.primary_phone)
@@ -49,9 +49,10 @@ export default function LeadsTable({ leads, role }: { leads: LeadRow[]; role: 'T
             <td className="py-2 pr-4">{l.status}</td>
             <td className="py-2 pr-4">{dispScore}</td>
             <td className="py-2 pr-4 whitespace-nowrap">{l.next_follow_up_at ? new Date(l.next_follow_up_at).toLocaleString() : '—'}</td>
-            <td className="py-2 pr-4 whitespace-nowrap" title={lastAct ? `${lastAct.type}${lastAct.outcome ? ' • ' + lastAct.outcome : ''}` : ''}>
+            <td className="py-2 pr-4 whitespace-nowrap" title={lastAct ? `${lastAct.type}${lastAct.outcome ? ' • ' + lastAct.outcome : ''}${lastAct.message ? '\n' + lastAct.message : ''}` : ''}>
               {l.last_activity_at ? new Date(l.last_activity_at).toLocaleString() : '—'}
             </td>
+            <td className="py-2 pr-4">{lastAct?.outcome || '—'}</td>
             <td className="py-2 pr-4">{l.owner?.full_name || '—'}</td>
             <td className="py-2 pr-4 max-w-[16rem] truncate" title={remark || ''}>{remark || '—'}</td>
             <td className="py-2 pr-4">

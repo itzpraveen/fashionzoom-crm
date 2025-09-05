@@ -4,6 +4,7 @@ import { DispositionSheet } from '@/components/DispositionSheet'
 import { FollowUpForm } from '@/components/FollowUpForm'
 import { BadgeScore } from '@/components/BadgeScore'
 import { normalizePhone, waLink } from '@/lib/phone'
+import ComposeModal from '@/components/ComposeModal'
 
 // Ensure per-request SSR with cookies (avoid static pre-render causing auth redirect)
 export const dynamic = 'force-dynamic'
@@ -33,6 +34,7 @@ export default async function LeadDetail({ params }: { params: { id: string } })
           <a href={telHref} className="rounded bg-white/10 px-3 py-2 text-sm">Call</a>
           <a href={waHref} className="rounded bg-white/10 px-3 py-2 text-sm">WhatsApp</a>
           <a href={`mailto:${lead.email ?? ''}`} className="rounded bg-white/10 px-3 py-2 text-sm">Email</a>
+          <ComposeModal lead={{ id: lead.id, full_name: lead.full_name, primary_phone: lead.primary_phone, email: lead.email }} />
         </div>
       </header>
       <div className="grid md:grid-cols-2 gap-4">
