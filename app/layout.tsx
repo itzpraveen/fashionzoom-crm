@@ -7,6 +7,7 @@ import FooterNav from '@/components/FooterNav'
 import TopNav from '@/components/TopNav'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import AuthNav from '@/components/AuthNav'
+import MobileFab from '@/components/MobileFab'
 // Keep layout static for fast navigations; do not fetch auth here
 
 export const metadata = {
@@ -52,6 +53,8 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         {enablePWA ? <SWRegister /> : <SWUnregister />}
         {/* Bottom navigation for mobile */}
         <FooterNav />
+        {/* Center floating action for quick add on mobile */}
+        <MobileFab />
       </body>
     </html>
   )
