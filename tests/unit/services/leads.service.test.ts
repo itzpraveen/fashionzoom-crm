@@ -36,7 +36,7 @@ describe('LeadsService', () => {
         status: 'NEW' 
       }
       
-      const fromMock = mockSupabase.from('leads')
+      const fromMock: any = mockSupabase.from('leads')
       ;(fromMock.single as any).mockResolvedValue({ data: mockLead, error: null })
       
       const result = await service.findById('123')
@@ -46,7 +46,7 @@ describe('LeadsService', () => {
     })
     
     it('should return null when lead not found', async () => {
-      const fromMock = mockSupabase.from('leads')
+      const fromMock: any = mockSupabase.from('leads')
       ;(fromMock.single as any).mockResolvedValue({ 
         data: null, 
         error: { message: 'Not found' } 
@@ -74,7 +74,7 @@ describe('LeadsService', () => {
         team_id: 'team456'
       }
       
-      const fromMock = mockSupabase.from('leads')
+      const fromMock: any = mockSupabase.from('leads')
       ;(fromMock.single as any).mockResolvedValue({ 
         data: expectedLead, 
         error: null 
@@ -91,7 +91,7 @@ describe('LeadsService', () => {
         primary_phone: '9876543210'
       }
       
-      const fromMock = mockSupabase.from('leads')
+      const fromMock: any = mockSupabase.from('leads')
       ;(fromMock.single as any).mockResolvedValue({ 
         data: null, 
         error: { message: 'duplicate key value violates unique constraint' }
@@ -125,7 +125,7 @@ describe('LeadsService', () => {
         full_name: 'John Doe'
       }
       
-      const fromMock = mockSupabase.from('leads')
+      const fromMock: any = mockSupabase.from('leads')
       ;(fromMock.single as any).mockResolvedValue({ 
         data: updatedLead, 
         error: null 
@@ -144,7 +144,7 @@ describe('LeadsService', () => {
         { id: '2', full_name: 'Lead 2' }
       ]
       
-      const fromMock = mockSupabase.from('leads')
+      const fromMock: any = mockSupabase.from('leads')
       ;(fromMock.range as any).mockResolvedValue({ 
         data: mockLeads, 
         count: 50,
@@ -163,7 +163,7 @@ describe('LeadsService', () => {
     })
     
     it('should apply filters correctly', async () => {
-      const fromMock = mockSupabase.from('leads')
+      const fromMock: any = mockSupabase.from('leads')
       ;(fromMock.range as any).mockResolvedValue({ 
         data: [], 
         count: 0,
@@ -187,7 +187,7 @@ describe('LeadsService', () => {
       const ids = ['1', '2', '3']
       const updates = { status: 'QUALIFIED' as const }
       
-      const fromMock = mockSupabase.from('leads')
+      const fromMock: any = mockSupabase.from('leads')
       ;(fromMock.select as any).mockResolvedValue({ 
         data: [{ id: '1' }, { id: '2' }, { id: '3' }],
         error: null 

@@ -33,7 +33,8 @@
       {
         "name": "next"
       }
-    ]
+    ],
+    "experimentalDecorators": true
   },
   "include": [
     "next-env.d.ts",

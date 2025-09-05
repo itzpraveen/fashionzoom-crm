@@ -5,25 +5,20 @@ import { createServerSupabase } from '@/lib/supabase/server'
 export const dynamic = 'force-dynamic'
 
 export async function GET(req: Request) {
-  const url = new URL(req.url)
-  const cookieStore = cookies()
   const hdrs = headers()
   const supabase = createServerSupabase()
-  const [{ data: userRes }, { data: sessionRes }] = await Promise.all([
+  const [{ data: userRes }] = await Promise.all([
     supabase.auth.getUser(),
-    supabase.auth.getSession?.() ?? Promise.resolve({ data: null } as any),
   ])
   const { data: profile } = userRes?.user
     ? await supabase.from('profiles').select('id, role, team_id, full_name, updated_at').eq('id', userRes.user.id).maybeSingle()
     : { data: null }
 
-  const cookieList = cookieStore.getAll().map(c => ({ name: c.name, valuePreview: (c.value || '').slice(0, 12), domain: (hdrs.get('host') || ''), path: '/', size: (c.value || '').length }))
+  const cookieList = cookies().getAll().map(c => ({ name: c.name, len: (c.value || '').length }))
   const out = {
     now: new Date().toISOString(),
-    requestHost: hdrs.get('host'),
-    referer: hdrs.get('referer') || null,
+    host: hdrs.get('host'),
     user: userRes?.user ? { id: userRes.user.id, email: userRes.user.email } : null,
-    session: sessionRes?.session ? { expires_at: sessionRes.session.expires_at } : null,
     profile: profile || null,
     cookies: cookieList,
     env: {
