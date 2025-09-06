@@ -1,5 +1,6 @@
 "use server"
 import { createServerSupabase } from '@/lib/supabase/server'
+import { getAdminClient } from '@/lib/supabase/admin'
 
 // Ensures a profile row exists for the signed-in user.
 // Uses service-role to bypass RLS safely on the server.
@@ -21,50 +22,21 @@ export async function bootstrapProfile(input?: { full_name?: string; role?: 'TEL
     return { ok: true }
   }
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!url || !serviceKey) throw new Error('Missing server credentials')
-
+  const admin = getAdminClient()
   // Read existing profile first to avoid downgrading an elevated role
-  const get = await fetch(`${url}/rest/v1/profiles?id=eq.${user.id}&select=id,role,full_name`, {
-    headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` }
-  })
-  if (get.ok) {
-    const arr: any[] = await get.json().catch(() => [])
-    const existing = arr?.[0]
-    if (existing) {
-      // Only patch full_name if missing; never change role here
-      const desiredName = input?.full_name ?? (user.user_metadata as any)?.name ?? null
-      if (!existing.full_name && desiredName) {
-        await fetch(`${url}/rest/v1/profiles?id=eq.${user.id}`, {
-          method: 'PATCH',
-          headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ full_name: desiredName })
-        }).catch(() => null)
-      }
-      return { ok: true }
+  const existing = await admin.from('profiles').select('id,role,full_name').eq('id', user.id).maybeSingle()
+  if (existing.data) {
+    const desiredName = input?.full_name ?? (user.user_metadata as any)?.name ?? null
+    if (!existing.data.full_name && desiredName) {
+      await admin.from('profiles').update({ full_name: desiredName }).eq('id', user.id)
     }
+    return { ok: true }
   }
-
   // Create fresh profile with default role (or provided) only if missing
-  const payload = {
+  await admin.from('profiles').upsert({
     id: user.id,
     full_name: input?.full_name ?? (user.user_metadata as any)?.name ?? null,
     role: input?.role ?? 'TELECALLER',
-  }
-  const resp = await fetch(`${url}/rest/v1/profiles`, {
-    method: 'POST',
-    headers: {
-      apikey: serviceKey,
-      Authorization: `Bearer ${serviceKey}`,
-      'Content-Type': 'application/json',
-      Prefer: 'resolution=merge-duplicates,return=minimal'
-    },
-    body: JSON.stringify(payload)
-  })
-  if (!resp.ok) {
-    const text = await resp.text().catch(() => '')
-    throw new Error(text || 'Failed to bootstrap profile')
-  }
+  }, { onConflict: 'id' })
   return { ok: true }
 }

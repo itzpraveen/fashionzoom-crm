@@ -6,7 +6,7 @@ import { AddLeadButton } from '@/components/AddLeadButton'
 import { Pagination } from '@/components/Pagination'
 import { redirect } from 'next/navigation'
 import { LeadsFilters } from '@/components/LeadsFilters'
-import LeadsTable from '@/components/LeadsTable'
+import LeadsTable, { LeadRow } from '@/components/LeadsTable'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
@@ -43,14 +43,12 @@ export default async function LeadsPage({
     }
   }
 
-  // Build query
+  // Base leads query (avoid heavy nested ordering by default)
   let query = supabase
     .from('leads')
     .select(`
       id, full_name, primary_phone, city, source, status, score, next_follow_up_at, created_at, last_activity_at, notes,
-      owner:profiles(full_name),
-      activities(outcome,type,message,created_at),
-      followups(remark,created_at)
+      owner:profiles(full_name)
     `, { count: 'exact' })
     .eq('owner_id', user.id)
     .eq('is_deleted', false)
@@ -78,13 +76,8 @@ export default async function LeadsPage({
     query = query.gte('next_follow_up_at', start.toISOString()).lt('next_follow_up_at', end.toISOString())
   }
   query = query.order('next_follow_up_at', { ascending: true, nullsFirst: false })
-  // Latest nested rows only
-  // @ts-ignore foreignTable typing
-  query = (query as any).order('created_at', { ascending: false, foreignTable: 'activities' }).limit(1, { foreignTable: 'activities' })
-  // @ts-ignore foreignTable typing
-  query = (query as any).order('created_at', { ascending: false, foreignTable: 'followups' }).limit(1, { foreignTable: 'followups' })
   
-  const { data: leads, count, error } = await query
+  const { data: baseLeads, count, error } = await query
   
   if (error) {
     console.error('Error fetching leads:', error)
@@ -92,6 +85,25 @@ export default async function LeadsPage({
   }
   
   const totalPages = Math.ceil((count || 0) / PAGE_SIZE)
+
+  // Optionally enrich with latest activity/followup for table view only
+  let leads: LeadRow[] = (baseLeads as any) || []
+  if (view === 'table' && Array.isArray(baseLeads) && baseLeads.length > 0) {
+    const ids = (baseLeads as any[]).map((l: any) => l.id)
+    const [actsRes, flsRes] = await Promise.all([
+      supabase.from('activities').select('lead_id,outcome,type,message,created_at').in('lead_id', ids).order('created_at', { ascending: false }),
+      supabase.from('followups').select('lead_id,remark,created_at').in('lead_id', ids).order('created_at', { ascending: false })
+    ])
+    const latestAct = new Map<string, any>()
+    actsRes.data?.forEach((a: any) => { if (!latestAct.has(a.lead_id)) latestAct.set(a.lead_id, a) })
+    const latestF = new Map<string, any>()
+    flsRes.data?.forEach((f: any) => { if (!latestF.has(f.lead_id)) latestF.set(f.lead_id, f) })
+    leads = (baseLeads as any[]).map((l: any) => ({
+      ...l,
+      activities: latestAct.get(l.id) ? [latestAct.get(l.id)] : [],
+      followups: latestF.get(l.id) ? [latestF.get(l.id)] : [],
+    })) as any
+  }
   
   // Categorize leads (cards view)
   const overdue = (leads as any[])?.filter((l: any) => l.next_follow_up_at && l.next_follow_up_at < now) || []

@@ -1,6 +1,6 @@
 "use client"
 import { useEffect, useMemo, useState } from 'react'
-import { createBrowserClient } from '@/lib/supabase/client-with-retry'
+import { createBrowserClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import { Phone, TrendingUp, Bell, UserPlus } from 'lucide-react'
 
@@ -44,7 +44,11 @@ export function DashboardTiles() {
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'activities' }, load)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'followups' }, load)
       .subscribe()
-    return () => { mounted = false; supabase.removeChannel(ch) }
+    return () => { 
+      mounted = false
+      try { ch.unsubscribe() } catch {}
+      supabase.removeChannel(ch) 
+    }
   }, [supabase])
 
   const TileIcon = ({ label }: { label: string }) => {

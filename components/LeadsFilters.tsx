@@ -5,7 +5,7 @@ import React, { useCallback, useRef } from 'react'
 export function LeadsFilters({ status, search, due }: { status?: string; search?: string; due?: string }) {
   const router = useRouter()
   const params = useSearchParams()
-  const debounceRef = useRef<NodeJS.Timeout | null>(null)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   // lazy import to avoid SSR issues
   const [events, setEvents] = React.useState<any[]>([])
   const [programs, setPrograms] = React.useState<any[]>([])

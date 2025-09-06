@@ -1,52 +1,43 @@
 interface CacheEntry<T> {
   data: T
-  timestamp: number
-  ttl: number
+  expiresAt: number // epoch ms
 }
 
 export class MemoryCache {
   private cache = new Map<string, CacheEntry<any>>()
-  private timers = new Map<string, NodeJS.Timeout>()
+  private sweeper: ReturnType<typeof setInterval> | null = null
   
   constructor(
     private defaultTTL: number = 60000, // 1 minute default
-    private maxSize: number = 100
-  ) {}
+    private maxSize: number = 100,
+    private sweepInterval: number = 30000 // 30s
+  ) {
+    this.sweeper = setInterval(() => this.sweep(), this.sweepInterval)
+  }
   
   set<T>(key: string, data: T, ttl?: number): void {
-    // Clear existing timer if any
-    this.clearTimer(key)
-    
-    // Evict oldest entry if cache is full
-    if (this.cache.size >= this.maxSize && !this.cache.has(key)) {
-      const oldestKey = this.findOldestKey()
-      if (oldestKey) this.delete(oldestKey)
-    }
-    
-    const actualTTL = ttl || this.defaultTTL
-    this.cache.set(key, {
-      data,
-      timestamp: Date.now(),
-      ttl: actualTTL
-    })
-    
-    // Set auto-expiry timer
-    if (actualTTL > 0) {
-      const timer = setTimeout(() => this.delete(key), actualTTL)
-      this.timers.set(key, timer)
+    const actualTTL = ttl ?? this.defaultTTL
+    // LRU: move key to the end by deleting then setting
+    if (this.cache.has(key)) this.cache.delete(key)
+    this.cache.set(key, { data, expiresAt: Date.now() + actualTTL })
+    // Evict least-recently-used if beyond max size
+    while (this.cache.size > this.maxSize) {
+      const oldestKey = this.cache.keys().next().value as string | undefined
+      if (!oldestKey) break
+      this.cache.delete(oldestKey)
     }
   }
   
   get<T>(key: string): T | null {
     const entry = this.cache.get(key)
     if (!entry) return null
-    
-    // Check if expired
-    if (Date.now() - entry.timestamp > entry.ttl) {
-      this.delete(key)
+    if (Date.now() >= entry.expiresAt) {
+      this.cache.delete(key)
       return null
     }
-    
+    // LRU bump: move to end
+    this.cache.delete(key)
+    this.cache.set(key, entry)
     return entry.data as T
   }
   
@@ -55,14 +46,10 @@ export class MemoryCache {
   }
   
   delete(key: string): boolean {
-    this.clearTimer(key)
     return this.cache.delete(key)
   }
   
   clear(): void {
-    // Clear all timers
-    this.timers.forEach(timer => clearTimeout(timer))
-    this.timers.clear()
     this.cache.clear()
   }
   
@@ -74,26 +61,17 @@ export class MemoryCache {
     return Array.from(this.cache.keys())
   }
   
-  private clearTimer(key: string): void {
-    const timer = this.timers.get(key)
-    if (timer) {
-      clearTimeout(timer)
-      this.timers.delete(key)
+  private sweep(): void {
+    const now = Date.now()
+    for (const [k, v] of this.cache) {
+      if (now >= v.expiresAt) this.cache.delete(k)
     }
   }
   
-  private findOldestKey(): string | null {
-    let oldestKey: string | null = null
-    let oldestTime = Infinity
-    
-    this.cache.forEach((entry, key) => {
-      if (entry.timestamp < oldestTime) {
-        oldestTime = entry.timestamp
-        oldestKey = key
-      }
-    })
-    
-    return oldestKey
+  dispose(): void {
+    if (this.sweeper) clearInterval(this.sweeper)
+    this.sweeper = null
+    this.clear()
   }
   
   // Utility method to create a cache key from multiple parts
