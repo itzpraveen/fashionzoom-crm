@@ -8,6 +8,7 @@ import TopNav from '@/components/TopNav'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import AuthNav from '@/components/AuthNav'
 import MobileFab from '@/components/MobileFab'
+import CommandPalette from '@/components/CommandPalette'
 // Keep layout static for fast navigations; do not fetch auth here
 
 export const metadata = {
@@ -53,6 +54,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <main id="content" role="main" className="mx-auto max-w-6xl px-4 py-4 pb-20 sm:pb-6">
           {children}
         </main>
+        <CommandPalette />
         {/* Register SW if enabled; otherwise actively unregister */}
         {enablePWA ? <SWRegister /> : <SWUnregister />}
         {/* Bottom navigation for mobile */}

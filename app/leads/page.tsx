@@ -8,6 +8,7 @@ import { redirect } from 'next/navigation'
 import { LeadsFilters } from '@/components/LeadsFilters'
 import LeadsTable, { LeadRow } from '@/components/LeadsTable'
 import Link from 'next/link'
+import StickyHeader from '@/components/StickyHeader'
 
 export const dynamic = 'force-dynamic'
 
@@ -113,9 +114,10 @@ export default async function LeadsPage({
   return (
     <div className="space-y-4">
       {/* Header: title + actions */}
-      <div className="flex items-center justify-between gap-3">
-        <h1 className="text-lg sm:text-xl font-semibold">Leads</h1>
-        <div className="flex items-center gap-2">
+      <StickyHeader className="sticky top-0 z-10 -mx-4 px-4 py-2 bg-white/60 dark:bg-black/30 backdrop-blur supports-[backdrop-filter]:bg-white/5 border-b border-white/10">
+        <div className="flex items-center justify-between gap-3">
+          <h1 className="text-lg sm:text-xl font-semibold">Leads</h1>
+          <div className="flex items-center gap-2">
           <LeadsFilters status={searchParams.status} search={searchParams.search} due={searchParams.due} />
           <nav
             aria-label="Leads view"
@@ -141,9 +143,10 @@ export default async function LeadsPage({
               Table
             </Link>
           </nav>
-          <AddLeadButton />
+            <AddLeadButton />
+          </div>
         </div>
-      </div>
+      </StickyHeader>
       
       {leads?.length === 0 ? (
         <EmptyState 
