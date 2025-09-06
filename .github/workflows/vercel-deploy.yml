@@ -34,3 +34,13 @@ jobs:
           working-directory: ./
           vercel-args: '--prod'
 
+  # Optional: simple deploy hook trigger if you prefer not to use tokens
+  production-hook:
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && secrets.VERCEL_DEPLOY_HOOK_URL != ''
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Vercel Deploy Hook
+        run: |
+          curl -fsS -X POST "$VERCEL_DEPLOY_HOOK_URL"
+        env:
+          VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
