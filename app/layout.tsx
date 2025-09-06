@@ -33,12 +33,20 @@ const themeInitScript = `(() => { try { const t = localStorage.getItem('fzcrm-th
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const enablePWA = process.env.NEXT_PUBLIC_ENABLE_PWA === '1'
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   return (
     <html lang="en">
       <body className="bg-grid">
         {/* Skip link for keyboard users */}
         <a href="#content" className="visually-hidden focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:bg-primary focus:text-white focus:px-3 focus:py-2 focus:rounded">Skip to content</a>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        {/* Hint the browser to establish early connection to Supabase */}
+        {supabaseUrl ? (
+          <>
+            <link rel="dns-prefetch" href={supabaseUrl} />
+            <link rel="preconnect" href={supabaseUrl} crossOrigin="anonymous" />
+          </>
+        ) : null}
         <header className="sticky top-0 z-30 border-b border-white/10 bg-gradient-to-b from-black/5 to-transparent backdrop-blur">
           <TopNav />
         </header>

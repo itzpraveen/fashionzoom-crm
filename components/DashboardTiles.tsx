@@ -39,15 +39,12 @@ export function DashboardTiles() {
       ])
     }
     load()
-    const sub1 = supabase
-      .channel('realtime:activities')
+    const ch = supabase
+      .channel('realtime:dashboard')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'activities' }, load)
-      .subscribe()
-    const sub2 = supabase
-      .channel('realtime:followups')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'followups' }, load)
       .subscribe()
-    return () => { mounted = false; supabase.removeChannel(sub1); supabase.removeChannel(sub2) }
+    return () => { mounted = false; supabase.removeChannel(ch) }
   }, [supabase])
 
   const TileIcon = ({ label }: { label: string }) => {
@@ -113,7 +110,7 @@ export function DashboardTiles() {
               href={href}
               className="card p-4 md:p-5 hover:bg-black/5 dark:hover:bg-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
               aria-label={`Open ${t.label}`}
-              prefetch
+              prefetch={false}
             >
               {content(t)}
             </Link>
