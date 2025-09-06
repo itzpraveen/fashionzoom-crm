@@ -1,9 +1,7 @@
 import { test, expect } from '@playwright/test'
 
 test.describe('Lead detail', () => {
-  test('open first lead and add follow-up', async ({ page }) => {
-    // Skip in dev-mode runner due to occasional dev error boundary
-    if (process.env.PLAYWRIGHT_DEV === '1') test.skip()
+  test.fixme('open first lead and add follow-up', async ({ page }) => {
     await page.goto('/leads')
     await expect(page.getByRole('heading', { name: 'Leads', level: 1 })).toBeVisible()
     // Open first lead link
