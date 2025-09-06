@@ -1,5 +1,6 @@
 "use client"
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { LayoutDashboard, Users, CalendarClock, FileText, Upload, ListChecks, LogOut, Settings as SettingsIcon, Menu as MenuIcon } from 'lucide-react'
@@ -33,13 +34,11 @@ export default function TopNav() {
   }
   return (
     <nav aria-label="Top" className="mx-auto max-w-6xl px-4 py-2 flex items-center gap-3 text-sm">
-      <Link href="/dashboard" className="font-semibold tracking-tight flex items-center gap-2">
-        {/* Show themed logo if available; fallback to badge */}
-        <picture className="inline-flex h-6 w-auto">
-          <source srcSet="/brand/logo-dark.png" media="(prefers-color-scheme: dark)" />
-          <img src="/brand/logo-light.png" alt="FashionZoom CRM" className="h-6 w-auto" onError={(e)=>{ (e.currentTarget as HTMLImageElement).style.display='none' }} />
-        </picture>
-        {/* Hide text label to avoid double branding */}
+      <Link href="/dashboard" className="font-semibold tracking-tight flex items-center gap-2" aria-label="Go to dashboard">
+        <span className="inline-flex items-center h-6">
+          <Image src="/brand/logo-light.png" alt="FashionZoom CRM" width={120} height={24} className="h-6 w-auto dark:hidden" priority={false} />
+          <Image src="/brand/logo-dark.png" alt="FashionZoom CRM" width={120} height={24} className="h-6 w-auto hidden dark:inline" priority={false} />
+        </span>
       </Link>
       {/* Desktop nav */}
       {loggedIn && !isAuthRoute && (

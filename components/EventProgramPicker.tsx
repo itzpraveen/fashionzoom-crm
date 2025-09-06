@@ -1,6 +1,6 @@
 "use client"
-import { useEffect, useMemo, useState } from 'react'
-import { createBrowserClient } from '@/lib/supabase/client'
+import { useEffect, useState } from 'react'
+import { listEvents, listProgramsByEvent } from '@/actions/meta'
 
 type Event = { id: string; name: string; season?: string | null }
 type Program = { id: string; name: string; event_id: string }
@@ -14,29 +14,19 @@ export function EventProgramPicker({
   onChange: (v: { event_id?: string; program_id?: string }) => void
   compact?: boolean
 }) {
-  const supabase = useMemo(() => createBrowserClient(), [])
   const [events, setEvents] = useState<Event[]>([])
   const [programs, setPrograms] = useState<Program[]>([])
   const [eventId, setEventId] = useState<string | undefined>(value?.event_id)
   const [programId, setProgramId] = useState<string | undefined>(value?.program_id)
 
   useEffect(() => {
-    supabase
-      .from('events')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .then(({ data }: { data: any[] | null }) => setEvents((data as any) || []))
-  }, [supabase])
+    listEvents().then((data:any)=> setEvents(data || [])).catch(()=>{})
+  }, [])
 
   useEffect(() => {
     if (!eventId) { setPrograms([]); setProgramId(undefined); return }
-    supabase
-      .from('programs')
-      .select('*')
-      .eq('event_id', eventId)
-      .order('created_at', { ascending: true })
-      .then(({ data }: { data: any[] | null }) => setPrograms((data as any) || []))
-  }, [eventId, supabase])
+    listProgramsByEvent(eventId).then((data:any)=> setPrograms(data || [])).catch(()=>{})
+  }, [eventId])
 
   useEffect(() => { onChange({ event_id: eventId, program_id: programId }) }, [eventId, programId, onChange])
 

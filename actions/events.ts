@@ -1,7 +1,7 @@
 "use server"
 import { z } from 'zod'
 import { createServerSupabase } from '@/lib/supabase/server'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 
 async function requireManagerOrAdmin() {
   const supabase = createServerSupabase()
@@ -32,6 +32,7 @@ export async function createEvent(formData: FormData) {
   const { error } = await supabase.from('events').insert(payload)
   if (error) throw error
   revalidatePath('/settings/events')
+  revalidateTag('events')
 }
 
 export async function updateEvent(formData: FormData) {
@@ -51,6 +52,7 @@ export async function updateEvent(formData: FormData) {
   const { error } = await supabase.from('events').update(patch).eq('id', id)
   if (error) throw error
   revalidatePath('/settings/events')
+  revalidateTag('events')
 }
 
 export async function deleteEvent(formData: FormData) {
@@ -60,6 +62,7 @@ export async function deleteEvent(formData: FormData) {
   const { error } = await supabase.from('events').delete().eq('id', id)
   if (error) throw error
   revalidatePath('/settings/events')
+  revalidateTag('events')
 }
 
 export async function createProgram(formData: FormData) {
@@ -71,6 +74,7 @@ export async function createProgram(formData: FormData) {
   const { error } = await supabase.from('programs').insert({ event_id: eventId, name, category })
   if (error) throw error
   revalidatePath('/settings/events')
+  revalidateTag('programs'); revalidateTag(`programs:${eventId}`)
 }
 
 export async function updateProgram(formData: FormData) {
@@ -82,6 +86,7 @@ export async function updateProgram(formData: FormData) {
   const { error } = await supabase.from('programs').update({ name, category }).eq('id', id)
   if (error) throw error
   revalidatePath('/settings/events')
+  revalidateTag('programs')
 }
 
 export async function deleteProgram(formData: FormData) {
@@ -91,5 +96,5 @@ export async function deleteProgram(formData: FormData) {
   const { error } = await supabase.from('programs').delete().eq('id', id)
   if (error) throw error
   revalidatePath('/settings/events')
+  revalidateTag('programs')
 }
-

@@ -13,14 +13,8 @@ export function LeadsFilters({ status, search, due }: { status?: string; search?
   const [programId, setProgramId] = React.useState<string | undefined>(() => params?.get('program_id') || undefined)
 
   React.useEffect(() => {
-    // Load events list once on mount
-    import('@/lib/supabase/client-with-retry').then(({ createBrowserClient }) => {
-      const sb = createBrowserClient()
-      sb
-        .from('events')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .then(({ data }: { data: any[] | null }) => setEvents((data as any) || []))
+    import('@/actions/meta').then(({ listEvents }) => {
+      listEvents().then((data: any) => setEvents(data || [])).catch(() => {})
     })
   }, [])
 
@@ -34,14 +28,8 @@ export function LeadsFilters({ status, search, due }: { status?: string; search?
       setPrograms([])
       return
     }
-    import('@/lib/supabase/client-with-retry').then(({ createBrowserClient }) => {
-      const sb = createBrowserClient()
-      sb
-        .from('programs')
-        .select('*')
-        .eq('event_id', eventIdParam)
-        .order('created_at', { ascending: true })
-        .then(({ data }: { data: any[] | null }) => setPrograms((data as any) || []))
+    import('@/actions/meta').then(({ listProgramsByEvent }) => {
+      listProgramsByEvent(eventIdParam).then((data: any) => setPrograms(data || [])).catch(() => {})
     })
   }, [eventIdParam, programIdParam])
 
@@ -122,9 +110,8 @@ export function LeadsFilters({ status, search, due }: { status?: string; search?
           setProgramId(undefined)
           router.push(buildUrl({ event_id: val, program_id: undefined }))
           // refresh programs
-          import('@/lib/supabase/client-with-retry').then(({ createBrowserClient }) => {
-            const sb = createBrowserClient()
-            if (val) sb.from('programs').select('*').eq('event_id', val).order('created_at', { ascending: true }).then(({ data }: { data: any[] | null }) => setPrograms((data as any) || []))
+          import('@/actions/meta').then(({ listProgramsByEvent }) => {
+            if (val) listProgramsByEvent(val).then((data: any) => setPrograms(data || [])).catch(() => {})
             else setPrograms([])
           })
         }}
