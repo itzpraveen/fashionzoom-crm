@@ -23,7 +23,7 @@ export default function ComposeModal({ lead }: { lead: LeadLite }) {
       .from('templates')
       .select('*')
       .order('created_at', { ascending: false })
-      .then(({ data }) => setTemplates(data || []))
+      .then(({ data }: { data: any[] | null }) => setTemplates(data || []))
   }, [open, supabase])
 
   const selected = useMemo(() => templates.find(t => t.id === templateId), [templates, templateId])

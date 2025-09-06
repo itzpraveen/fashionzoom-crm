@@ -20,7 +20,7 @@ export function LeadsFilters({ status, search, due }: { status?: string; search?
         .from('events')
         .select('*')
         .order('created_at', { ascending: false })
-        .then(({ data }) => setEvents((data as any) || []))
+        .then(({ data }: { data: any[] | null }) => setEvents((data as any) || []))
     })
   }, [])
 
@@ -41,7 +41,7 @@ export function LeadsFilters({ status, search, due }: { status?: string; search?
         .select('*')
         .eq('event_id', eventIdParam)
         .order('created_at', { ascending: true })
-        .then(({ data }) => setPrograms((data as any) || []))
+        .then(({ data }: { data: any[] | null }) => setPrograms((data as any) || []))
     })
   }, [eventIdParam, programIdParam])
 
@@ -124,7 +124,7 @@ export function LeadsFilters({ status, search, due }: { status?: string; search?
           // refresh programs
           import('@/lib/supabase/client-with-retry').then(({ createBrowserClient }) => {
             const sb = createBrowserClient()
-            if (val) sb.from('programs').select('*').eq('event_id', val).order('created_at', { ascending: true }).then(({ data }) => setPrograms((data as any) || []))
+            if (val) sb.from('programs').select('*').eq('event_id', val).order('created_at', { ascending: true }).then(({ data }: { data: any[] | null }) => setPrograms((data as any) || []))
             else setPrograms([])
           })
         }}

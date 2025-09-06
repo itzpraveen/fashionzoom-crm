@@ -21,12 +21,21 @@ export function EventProgramPicker({
   const [programId, setProgramId] = useState<string | undefined>(value?.program_id)
 
   useEffect(() => {
-    supabase.from('events').select('*').order('created_at', { ascending: false }).then(({ data }) => setEvents((data as any) || []))
+    supabase
+      .from('events')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .then(({ data }: { data: any[] | null }) => setEvents((data as any) || []))
   }, [supabase])
 
   useEffect(() => {
     if (!eventId) { setPrograms([]); setProgramId(undefined); return }
-    supabase.from('programs').select('*').eq('event_id', eventId).order('created_at', { ascending: true }).then(({ data }) => setPrograms((data as any) || []))
+    supabase
+      .from('programs')
+      .select('*')
+      .eq('event_id', eventId)
+      .order('created_at', { ascending: true })
+      .then(({ data }: { data: any[] | null }) => setPrograms((data as any) || []))
   }, [eventId, supabase])
 
   useEffect(() => { onChange({ event_id: eventId, program_id: programId }) }, [eventId, programId, onChange])

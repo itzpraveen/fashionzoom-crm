@@ -34,10 +34,21 @@ export function LeadEnrollments({ leadId }: { leadId: string }) {
   }, [supabase, leadId])
 
   useEffect(() => { load() }, [load])
-  useEffect(() => { supabase.from('events').select('*').order('created_at', { ascending: false }).then(({ data }) => setEvents((data as any) || [])) }, [supabase])
+  useEffect(() => {
+    supabase
+      .from('events')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .then(({ data }: { data: any[] | null }) => setEvents((data as any) || []))
+  }, [supabase])
   useEffect(() => {
     if (!eventId) { setPrograms([]); setProgramId(''); return }
-    supabase.from('programs').select('*').eq('event_id', eventId).order('created_at', { ascending: true }).then(({ data }) => setPrograms((data as any) || []))
+    supabase
+      .from('programs')
+      .select('*')
+      .eq('event_id', eventId)
+      .order('created_at', { ascending: true })
+      .then(({ data }: { data: any[] | null }) => setPrograms((data as any) || []))
   }, [eventId, supabase])
 
   return (
