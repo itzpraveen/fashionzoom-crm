@@ -2,7 +2,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { LayoutDashboard, Users, CalendarClock, FileText, Upload, ListChecks, LogOut, Settings as SettingsIcon, Menu as MenuIcon } from 'lucide-react'
 import { createBrowserClient } from '@/lib/supabase/client'
 import { ThemeToggle } from '@/components/ThemeToggle'
@@ -18,12 +18,30 @@ export default function TopNav() {
   const pathname = usePathname()
   const router = useRouter()
   const [loggedIn, setLoggedIn] = useState<boolean>(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
+  const settingsRef = useRef<HTMLDetailsElement | null>(null)
+  const mobileRef = useRef<HTMLDetailsElement | null>(null)
   const isAuthRoute = pathname?.startsWith('/login') || pathname?.startsWith('/auth/')
   useEffect(() => {
     const supabase = createBrowserClient()
     supabase.auth.getUser().then((res: any) => setLoggedIn(!!res?.data?.user))
     const { data } = supabase.auth.onAuthStateChange((_evt: any, session: any) => setLoggedIn(!!session?.user))
     return () => { data.subscription.unsubscribe() }
+  }, [])
+  // Close menus on route change
+  useEffect(() => { setSettingsOpen(false); setMobileOpen(false) }, [pathname])
+  // Click-away + Esc to close menus
+  useEffect(() => {
+    const onDocClick = (e: MouseEvent) => {
+      const t = e.target as Node
+      if (settingsRef.current && !settingsRef.current.contains(t)) setSettingsOpen(false)
+      if (mobileRef.current && !mobileRef.current.contains(t)) setMobileOpen(false)
+    }
+    const onEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') { setSettingsOpen(false); setMobileOpen(false) } }
+    document.addEventListener('mousedown', onDocClick)
+    document.addEventListener('keydown', onEsc)
+    return () => { document.removeEventListener('mousedown', onDocClick); document.removeEventListener('keydown', onEsc) }
   }, [])
   const onSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
@@ -63,7 +81,7 @@ export default function TopNav() {
               </Link>
             )
           })}
-          <details className="relative">
+          <details ref={settingsRef} className="relative" open={settingsOpen} onToggle={(e)=>setSettingsOpen((e.currentTarget as HTMLDetailsElement).open)}>
             <summary className="list-none cursor-pointer hover:underline inline-flex items-center gap-1">
               <SettingsIcon size={16} aria-hidden="true" /> Settings
             </summary>
@@ -97,7 +115,7 @@ export default function TopNav() {
       <div className="ml-auto sm:hidden flex items-center gap-2">
         <ThemeToggle />
         {loggedIn && !isAuthRoute && (
-        <details className="relative">
+        <details ref={mobileRef} className="relative" open={mobileOpen} onToggle={(e)=>setMobileOpen((e.currentTarget as HTMLDetailsElement).open)}>
           <summary className="list-none cursor-pointer rounded bg-white/10 px-3 py-2 inline-flex items-center gap-2">
             <MenuIcon size={16} aria-hidden="true" /> Menu
           </summary>
