@@ -1,6 +1,6 @@
 "use client"
 import { useEffect, useMemo, useState } from 'react'
-import { createBrowserClient } from '@/lib/supabase/client-with-retry'
+import { createBrowserClient } from '@/lib/supabase/client'
 
 type Event = { id: string; name: string; season?: string | null }
 type Program = { id: string; name: string; event_id: string }

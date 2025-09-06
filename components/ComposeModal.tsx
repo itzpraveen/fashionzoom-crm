@@ -1,6 +1,6 @@
 "use client"
 import { useEffect, useMemo, useState } from 'react'
-import { createBrowserClient } from '@/lib/supabase/client-with-retry'
+import { createBrowserClient } from '@/lib/supabase/client'
 import { waLink } from '@/lib/phone'
 
 type LeadLite = { id: string; full_name: string | null; primary_phone: string; email?: string | null }

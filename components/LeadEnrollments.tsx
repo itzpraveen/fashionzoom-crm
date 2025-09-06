@@ -1,6 +1,6 @@
 "use client"
 import { useCallback, useEffect, useMemo, useState, useTransition } from 'react'
-import { createBrowserClient } from '@/lib/supabase/client-with-retry'
+import { createBrowserClient } from '@/lib/supabase/client'
 import { upsertEnrollment } from '@/actions/leads'
 
 type Enrollment = {
