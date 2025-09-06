@@ -223,9 +223,9 @@ export const createLead = async (input: {
       return { ok: true }
     }
 
-    const err = attemptAnon.error
-    const msg = (err.message || '').toLowerCase()
-    if (msg.includes('duplicate') || msg.includes('unique')) {
+    const err = attemptAnon.error as any
+    const msg = (err?.message || '').toLowerCase()
+    if (err?.code === '23505' || msg.includes('duplicate') || msg.includes('unique')) {
       return { ok: false, error: 'A lead with this phone already exists.' }
     }
 
@@ -262,12 +262,28 @@ export const createLead = async (input: {
       body: JSON.stringify(payload),
     })
     if (!resp.ok) {
+      const bodyText = await resp.text().catch(()=> '')
+      const lower = bodyText.toLowerCase()
+      if (resp.status === 409 || lower.includes('duplicate') || lower.includes('unique')) {
+        return { ok: false, error: 'A lead with this phone already exists.' }
+      }
+      if (resp.status === 401 || resp.status === 403) {
+        return { ok: false, error: 'Server configuration error (service role unauthorized).' }
+      }
       const resp2 = await fetch(`${url}/rest/v1/leads?select=id`, {
         method: 'POST',
         headers: { ...headers, Prefer: 'return=minimal' },
         body: JSON.stringify({ ...payload, team_id: null }),
       })
       if (!resp2.ok) {
+        const t2 = await resp2.text().catch(()=> '')
+        const l2 = t2.toLowerCase()
+        if (resp2.status === 409 || l2.includes('duplicate') || l2.includes('unique')) {
+          return { ok: false, error: 'A lead with this phone already exists.' }
+        }
+        if (resp2.status === 401 || resp2.status === 403) {
+          return { ok: false, error: 'Server configuration error (service role unauthorized).' }
+        }
         return { ok: false, error: 'Failed to create lead. Please contact admin.' }
       }
       // attempt to parse id if available
