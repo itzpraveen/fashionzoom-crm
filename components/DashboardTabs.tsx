@@ -38,7 +38,8 @@ export default function DashboardTabs() {
 
   return (
     <div className="border-b border-white/10">
-      <nav className="mx-auto max-w-6xl px-4 -mb-px flex gap-4 overflow-x-auto" aria-label="Dashboard tabs">
+      {/* Rely on the parent page container; avoid nested padding to keep tabs aligned with titles */}
+      <nav className="-mb-px flex gap-4 overflow-x-auto" aria-label="Dashboard tabs">
         {tabs.map(({ href, label, badge }) => {
           const active = pathname?.startsWith(href)
           return (

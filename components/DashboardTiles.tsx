@@ -56,7 +56,7 @@ export function DashboardTiles() {
   }, [supabase])
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       {tiles.map(t => {
         // Provide sensible deep links for tiles
         let href: string | null = null
@@ -82,14 +82,14 @@ export function DashboardTiles() {
           <Link
             key={t.label}
             href={href}
-            className="card p-3 hover:bg-black/5 dark:hover:bg-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
+            className="card p-4 md:p-5 hover:bg-black/5 dark:hover:bg-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
             aria-label={`Open ${t.label}`}
             prefetch
           >
             {content}
           </Link>
         ) : (
-          <div key={t.label} className="card p-3">
+          <div key={t.label} className="card p-4 md:p-5">
             {content}
           </div>
         )

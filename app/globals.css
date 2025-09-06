@@ -94,7 +94,8 @@ body {
 
 /* Modern background flourish */
 .bg-grid {
-  background-image: radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--muted) 12%, transparent) 1px, transparent 0);
+  /* Subtle dotted grid; keep very gentle to avoid visual noise */
+  background-image: radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--muted) 8%, transparent) 1px, transparent 0);
   background-size: 24px 24px;
 }
 /* Improve focus visibility for accessibility */

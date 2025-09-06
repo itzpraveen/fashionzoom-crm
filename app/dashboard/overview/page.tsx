@@ -21,7 +21,7 @@ export default async function DashboardOverviewPage() {
         <h2 className="font-semibold flex items-center gap-2">Overdue follow-ups <span className="text-xs rounded-full px-2 py-0.5 border border-danger/30 bg-danger/10 text-danger">{overdueCount || 0}</span></h2>
         <div className="space-y-2">
           {(overdue||[]).map((f:any)=> (
-            <div key={f.id} className="card p-2 text-sm flex items-center justify-between">
+            <div key={f.id} className="card p-3 text-sm flex items-center justify-between">
               <div>
                 <div className="text-xs text-muted">{new Date(f.due_at).toLocaleString()} • {f.priority}</div>
                 <div>{(f as any).leads?.full_name || '—'}</div>
@@ -37,7 +37,7 @@ export default async function DashboardOverviewPage() {
         <h2 className="font-semibold flex items-center gap-2">Today’s leads <span className="text-xs rounded-full px-2 py-0.5 border border-line bg-black/5 text-fg/70 dark:bg-white/5 dark:text-white/80">{recentLeads?.length || 0}</span></h2>
         <div className="space-y-2">
           {(recentLeads||[]).map((l:any)=> (
-            <div key={l.id} className="card p-2 text-sm flex items-center justify-between">
+            <div key={l.id} className="card p-3 text-sm flex items-center justify-between">
               <div>
                 <div className="text-xs text-muted">{new Date(l.created_at).toLocaleString()} • {l.source}</div>
                 <div>{l.full_name || '—'} {l.city ? <span className="text-xs text-muted">• {l.city}</span> : null}</div>
