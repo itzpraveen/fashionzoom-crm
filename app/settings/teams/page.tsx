@@ -1,6 +1,6 @@
 import { createServerSupabase } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { createTeam, assignUserToTeam, inviteUser, resendInvite, removeUserFromTeam, setUserRole, deleteTeam, renameTeam, moveMembers } from '@/actions/teams'
+import { createTeam, assignUserToTeam, inviteUser, resendInvite, removeUserFromTeam, setUserRole, deleteTeam, renameTeam, moveMembers, bootstrapFirstAdmin } from '@/actions/teams'
 import SubmitButton from '@/components/SubmitButton'
 import ConfirmSubmit from '@/components/ConfirmSubmit'
 
@@ -21,7 +21,28 @@ export default async function TeamsSettingsPage() {
       </div>
     )
   }
-  if ((me?.role ?? 'TELECALLER') !== 'ADMIN') return <div className="text-sm">403 — Admins only.</div>
+  if ((me?.role ?? 'TELECALLER') !== 'ADMIN') {
+    // If there are no admins yet, offer a one-time bootstrap to elevate self.
+    // Uses service role on the server (see actions/teams.ts::bootstrapFirstAdmin).
+    async function promoteSelf() {
+      'use server'
+      try {
+        await bootstrapFirstAdmin()
+      } catch (e) {
+        // swallow; page will refresh and show current access
+      }
+    }
+    return (
+      <div className="space-y-3">
+        <h1 className="text-xl font-semibold">Teams</h1>
+        <p className="text-sm">403 — Admins only.</p>
+        <form action={promoteSelf}>
+          <button className="px-3 py-2 rounded bg-white/10 text-sm">I am the first admin</button>
+        </form>
+        <p className="text-xs text-muted">Tip: This button only works if no admins exist yet. Otherwise, ask an existing admin to grant you access from this page.</p>
+      </div>
+    )
+  }
 
   const { data: teams } = await supabase.from('teams').select('*').order('created_at', { ascending: true })
   const { data: members } = await supabase.from('profiles').select('id, full_name, role, team_id').order('full_name', { ascending: true })

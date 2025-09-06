@@ -22,6 +22,49 @@ export async function createTeam(input: { name: string }) {
   return { ok: true }
 }
 
+// Bootstrap: if there are no ADMIN users yet, promote the current user to ADMIN.
+// This is safe to expose because it only succeeds when admin count is zero.
+export async function bootstrapFirstAdmin() {
+  const supabase = createServerSupabase()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+
+  // In demo, simply elevate
+  if (process.env.NEXT_PUBLIC_DEMO === '1') {
+    const { upsertRow } = await import('@/lib/demo/store')
+    upsertRow('profiles', { id: user.id, role: 'ADMIN' }, 'id', false)
+    return { ok: true }
+  }
+
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!serviceKey) throw new Error('Service key missing')
+
+  // Check if any admin exists
+  const r = await fetch(`${url}/rest/v1/profiles?role=eq.ADMIN&select=id&limit=1`, {
+    headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` }
+  })
+  if (!r.ok) throw new Error('Failed to verify admin status')
+  const arr: any[] = await r.json().catch(() => [])
+  if (Array.isArray(arr) && arr.length > 0) {
+    throw new Error('An admin already exists')
+  }
+
+  // Elevate current user
+  const up = await fetch(`${url}/rest/v1/profiles`, {
+    method: 'POST',
+    headers: {
+      apikey: serviceKey,
+      Authorization: `Bearer ${serviceKey}`,
+      'Content-Type': 'application/json',
+      Prefer: 'resolution=merge-duplicates,return=minimal'
+    },
+    body: JSON.stringify({ id: user.id, role: 'ADMIN' })
+  })
+  if (!up.ok) throw new Error('Failed to set admin role')
+  return { ok: true }
+}
+
 export async function assignUserToTeam(input: { email?: string; userId?: string; teamId: string; role?: 'TELECALLER'|'MANAGER'|'ADMIN' }) {
   if (process.env.NEXT_PUBLIC_DEMO === '1') {
     const { getTable, upsertRow } = await import('@/lib/demo/store')
