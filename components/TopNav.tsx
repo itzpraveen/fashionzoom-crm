@@ -86,7 +86,7 @@ export default function TopNav() {
                   <CalendarClock size={16} aria-hidden="true" /> <span>Events & Programs</span>
                 </Link>
                 <div className="my-1 border-t border-white/10" />
-                <Link className="flex items-center gap-2 px-3 py-2 rounded hover:bg-danger/20 text-danger" href="/logout" prefetch role="menuitem">
+                <Link className="flex items-center gap-2 px-3 py-2 rounded hover:bg-danger/20 text-danger" href="/logout" prefetch={false} role="menuitem">
                   <LogOut size={16} aria-hidden="true" /> <span>Logout</span>
                 </Link>
               </nav>

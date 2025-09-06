@@ -25,7 +25,7 @@ export default function AuthNav() {
   }
 
   return loggedIn ? (
-    <Link prefetch className="hover:underline" href="/logout">Logout</Link>
+    <Link prefetch={false} className="hover:underline" href="/logout">Logout</Link>
   ) : (
     <Link prefetch className="hover:underline" href="/login">Login</Link>
   )
