@@ -117,10 +117,30 @@ export default async function LeadsPage({
         <h1 className="text-lg sm:text-xl font-semibold">Leads</h1>
         <div className="flex items-center gap-2">
           <LeadsFilters status={searchParams.status} search={searchParams.search} due={searchParams.due} />
-          <div className="hidden sm:flex items-center gap-1 text-xs border border-white/10 rounded-md overflow-hidden">
-            <Link href={{ pathname: '/leads', query: { ...searchParams, view: 'cards' } }} className={`px-2 py-1 ${view==='cards'?'bg-white/10':''}`}>Cards</Link>
-            <Link href={{ pathname: '/leads', query: { ...searchParams, view: 'table' } }} className={`px-2 py-1 ${view==='table'?'bg-white/10':''}`}>Table</Link>
-          </div>
+          <nav
+            aria-label="Leads view"
+            role="tablist"
+            className="inline-flex items-center gap-1 text-xs rounded-lg bg-white/5 ring-1 ring-inset ring-white/10 p-0.5"
+          >
+            <Link
+              role="tab"
+              aria-selected={view==='cards'}
+              href={{ pathname: '/leads', query: { ...searchParams, view: 'cards' } }}
+              className={`px-2.5 py-1.5 rounded-md transition-colors ${view==='cards' ? 'bg-primary/20 text-primary' : 'text-muted hover:bg-white/10 hover:text-fg'}`}
+              prefetch
+            >
+              Cards
+            </Link>
+            <Link
+              role="tab"
+              aria-selected={view==='table'}
+              href={{ pathname: '/leads', query: { ...searchParams, view: 'table' } }}
+              className={`px-2.5 py-1.5 rounded-md transition-colors ${view==='table' ? 'bg-primary/20 text-primary' : 'text-muted hover:bg-white/10 hover:text-fg'}`}
+              prefetch
+            >
+              Table
+            </Link>
+          </nav>
           <AddLeadButton />
         </div>
       </div>
