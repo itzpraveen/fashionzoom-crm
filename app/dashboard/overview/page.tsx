@@ -30,7 +30,6 @@ export default async function DashboardOverviewPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-semibold">Overview</h1>
       <DashboardTiles />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
