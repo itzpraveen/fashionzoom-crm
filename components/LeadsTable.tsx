@@ -25,7 +25,7 @@ export type LeadRow = {
   followups?: { remark: string | null; created_at: string }[]
 }
 
-export default function LeadsTable({ leads, role }: { leads: LeadRow[]; role: 'TELECALLER'|'MANAGER'|'ADMIN' }) {
+export default function LeadsTable({ leads, role, assignToMe }: { leads: LeadRow[]; role: 'TELECALLER'|'MANAGER'|'ADMIN'; assignToMe?: (formData: FormData) => void }) {
   const mask = (p: string) => {
     if (role === 'ADMIN' || role === 'MANAGER') {
       return normalizePhone(p) || p
@@ -94,6 +94,12 @@ export default function LeadsTable({ leads, role }: { leads: LeadRow[]; role: 'T
                 <Link href={`/leads/${l.id}`} className="px-2 py-1 rounded bg-primary text-white text-xs">Open</Link>
                 <QuickNext leadId={l.id} />
                 <MarkContactedButton leadId={l.id} />
+                {(assignToMe && (role === 'ADMIN' || role === 'MANAGER')) && (
+                  <form action={assignToMe}>
+                    <input type="hidden" name="id" value={l.id} />
+                    <button className="px-2 py-1 rounded bg-white/10 text-xs" title="Assign to me">Assign to me</button>
+                  </form>
+                )}
               </div>
             </td>
           </tr>

@@ -7,6 +7,8 @@ import { Pagination } from '@/components/Pagination'
 import { redirect } from 'next/navigation'
 import { LeadsFilters } from '@/components/LeadsFilters'
 import LeadsTable from '@/components/LeadsTable'
+import { updateLead } from '@/actions/leads'
+import { revalidatePath } from 'next/cache'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
@@ -93,6 +95,14 @@ export default async function LeadsPage({
   
   const totalPages = Math.ceil((count || 0) / PAGE_SIZE)
   
+  async function assignToMe(formData: FormData) {
+    'use server'
+    const id = String(formData.get('id') || '')
+    if (!id) return
+    await updateLead({ id, patch: { owner_id: user.id } })
+    revalidatePath('/leads')
+  }
+
   // Categorize leads (cards view)
   const overdue = (leads as any[])?.filter((l: any) => l.next_follow_up_at && l.next_follow_up_at < now) || []
   const due = (leads as any[])?.filter((l: any) => l.next_follow_up_at && l.next_follow_up_at >= now) || []
@@ -119,7 +129,7 @@ export default async function LeadsPage({
           hint={searchParams.search || searchParams.status ? "Try adjusting your filters" : "Add your first lead to get started"} 
         />
       ) : view === 'table' ? (
-        <LeadsTable leads={leads as any} role={role} />
+        <LeadsTable leads={leads as any} role={role} assignToMe={assignToMe} />
       ) : (
         <>
           {overdue.length > 0 && (
