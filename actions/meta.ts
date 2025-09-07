@@ -1,10 +1,20 @@
 "use server"
 import { unstable_cache, revalidateTag } from 'next/cache'
-import { createServerSupabase } from '@/lib/supabase/server'
+import { createDemoSupabase } from '@/lib/supabase/demo'
+import { createClient } from '@supabase/supabase-js'
+
+function getPublicClient() {
+  if (process.env.NEXT_PUBLIC_DEMO === '1') return createDemoSupabase()
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { auth: { persistSession: false, autoRefreshToken: false } }
+  ) as any
+}
 
 // Cached, non-user-specific metadata. Safe to share across users.
 export const listEvents = unstable_cache(async () => {
-  const supabase = createServerSupabase()
+  const supabase = getPublicClient()
   const { data, error } = await supabase
     .from('events')
     .select('*')
@@ -15,7 +25,7 @@ export const listEvents = unstable_cache(async () => {
 
 export const listProgramsByEvent = (eventId: string) => unstable_cache(async () => {
   if (!eventId) return [] as any[]
-  const supabase = createServerSupabase()
+  const supabase = getPublicClient()
   const { data, error } = await supabase
     .from('programs')
     .select('*')
@@ -33,4 +43,3 @@ export async function invalidateProgramsCache(eventId?: string) {
   revalidateTag('programs')
   if (eventId) revalidateTag(`programs:${eventId}`)
 }
-
