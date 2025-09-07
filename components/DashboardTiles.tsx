@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useRef } from 'react'
 import { createBrowserClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import { Phone, TrendingUp, Bell, UserPlus } from 'lucide-react'
@@ -15,39 +15,43 @@ export function DashboardTiles() {
 
   useEffect(() => {
     let mounted = true
-    async function load() {
+    const load = async () => {
       const today = new Date(); today.setHours(0,0,0,0)
-      const { data: calls } = await supabase
-        .from('activities')
-        .select('id, outcome')
-        .gte('created_at', today.toISOString())
-      const contact = calls?.filter((c: any) => c.outcome === 'CONNECTED').length ?? 0
-      const { count: overdue } = await supabase
-        .from('followups')
-        .select('*', { count: 'exact', head: true })
-        .lt('due_at', new Date().toISOString())
-        .eq('status','PENDING')
-      const { count: created } = await supabase
-        .from('leads')
-        .select('*', { count: 'exact', head: true })
-        .gte('created_at', today.toISOString())
-      if (mounted) setTiles([
-        { label: "Today's Calls", value: calls?.length ?? 0 },
-        { label: 'Contact Rate', value: calls && calls.length ? Math.round((contact / calls.length) * 100) : 0 },
-        { label: 'Overdue Follow-ups', value: overdue ?? 0 },
-        { label: 'Leads Created', value: created ?? 0 }
+      // Use lightweight HEAD count queries for speed
+      const [totalCalls, contactCalls, overdue, created] = await Promise.all([
+        supabase.from('activities').select('*', { count: 'exact', head: true }).gte('created_at', today.toISOString()),
+        supabase.from('activities').select('*', { count: 'exact', head: true }).gte('created_at', today.toISOString()).eq('outcome', 'CONNECTED'),
+        supabase.from('followups').select('*', { count: 'exact', head: true }).lt('due_at', new Date().toISOString()).eq('status', 'PENDING'),
+        supabase.from('leads').select('*', { count: 'exact', head: true }).gte('created_at', today.toISOString()),
+      ])
+      if (!mounted) return
+      const total = totalCalls.count || 0
+      const connected = contactCalls.count || 0
+      setTiles([
+        { label: "Today's Calls", value: total },
+        { label: 'Contact Rate', value: total ? Math.round((connected / total) * 100) : 0 },
+        { label: 'Overdue Follow-ups', value: overdue.count || 0 },
+        { label: 'Leads Created', value: created.count || 0 }
       ])
     }
     load()
+
+    // Debounce realtime updates to avoid rapid re-renders
+    const timer = { ref: null as any }
+    const schedule = () => {
+      if (timer.ref) clearTimeout(timer.ref)
+      timer.ref = setTimeout(load, 500)
+    }
     const ch = supabase
       .channel('realtime:dashboard')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'activities' }, load)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'followups' }, load)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'activities' }, schedule)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'followups' }, schedule)
       .subscribe()
-    return () => { 
+    return () => {
       mounted = false
       try { ch.unsubscribe() } catch {}
-      supabase.removeChannel(ch) 
+      supabase.removeChannel(ch)
+      if (timer.ref) clearTimeout(timer.ref)
     }
   }, [supabase])
 
