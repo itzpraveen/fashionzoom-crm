@@ -3,7 +3,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
-import { LayoutDashboard, Users, CalendarClock, FileText, Upload, ListChecks, LogOut, Settings as SettingsIcon, Menu as MenuIcon, Search as SearchIcon } from 'lucide-react'
+import { LayoutDashboard, Users, CalendarClock, FileText, Upload, ListChecks, LogOut, Settings as SettingsIcon, Menu as MenuIcon, Search as SearchIcon, UserPlus } from 'lucide-react'
 import { createBrowserClient } from '@/lib/supabase/client'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import NotificationsBell from '@/components/NotificationsBell'
@@ -100,6 +100,11 @@ export default function TopNav() {
                     <Users size={16} aria-hidden="true" /> <span>Teams</span>
                   </Link>
                 )}
+                {role === 'ADMIN' && (
+                  <Link className="flex items-center gap-2 px-3 py-2 rounded hover:bg-white/10" href="/settings/teams#invite" prefetch={false} role="menuitem">
+                    <UserPlus size={16} aria-hidden="true" /> <span>Invite</span>
+                  </Link>
+                )}
                 <Link className="flex items-center gap-2 px-3 py-2 rounded hover:bg-white/10" href="/settings/templates" prefetch={false} role="menuitem">
                   <FileText size={16} aria-hidden="true" /> <span>Templates</span>
                 </Link>
@@ -148,7 +153,10 @@ export default function TopNav() {
                     </summary>
                     <div className="pl-3 mt-1 flex flex-col">
                       {role === 'ADMIN' && (
-                        <Link className="flex items-center gap-2 px-3 py-1.5 rounded hover:bg-white/10" href="/settings/teams" prefetch={false}><Users size={14} /> Teams</Link>
+                        <>
+                          <Link className="flex items-center gap-2 px-3 py-1.5 rounded hover:bg-white/10" href="/settings/teams" prefetch={false}><Users size={14} /> Teams</Link>
+                          <Link className="flex items-center gap-2 px-3 py-1.5 rounded hover:bg-white/10" href="/settings/teams#invite" prefetch={false}><UserPlus size={14} /> Invite</Link>
+                        </>
                       )}
                       <Link className="flex items-center gap-2 px-3 py-1.5 rounded hover:bg-white/10" href="/settings/templates" prefetch={false}><FileText size={14} /> Templates</Link>
                       <Link className="flex items-center gap-2 px-3 py-1.5 rounded hover:bg-white/10" href="/import" prefetch={false}><Upload size={14} /> Import</Link>

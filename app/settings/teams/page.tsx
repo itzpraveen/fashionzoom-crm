@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { createTeam, assignUserToTeam, inviteUser, resendInvite, removeUserFromTeam, setUserRole, deleteTeam, renameTeam, moveMembers, bootstrapFirstAdmin } from '@/actions/teams'
 import SubmitButton from '@/components/SubmitButton'
 import ConfirmSubmit from '@/components/ConfirmSubmit'
+import { normalizeRole } from '@/lib/utils/role'
 // Read env directly to avoid hard-failing in demo mode
 import { bootstrapProfile } from '@/actions/auth'
 
@@ -31,7 +32,7 @@ export default async function TeamsSettingsPage() {
       </div>
     )
   }
-  if ((me?.role ?? 'TELECALLER') !== 'ADMIN') {
+  if (normalizeRole(me?.role) !== 'ADMIN') {
     // If there are no admins yet, offer a one-time bootstrap to elevate self.
     // Uses service role on the server (see actions/teams.ts::bootstrapFirstAdmin).
     async function promoteSelf() {
@@ -134,7 +135,7 @@ export default async function TeamsSettingsPage() {
         </form>
       </section>
 
-      <section className="space-y-2">
+      <section id="invite" className="space-y-2">
         <h2 className="font-medium">Invite User</h2>
         <form action={inviteAction} className="grid grid-cols-1 sm:grid-cols-5 gap-2 items-end">
           <div>
