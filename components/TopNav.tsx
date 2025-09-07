@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { LayoutDashboard, Users, CalendarClock, FileText, Upload, ListChecks, LogOut, Settings as SettingsIcon, Menu as MenuIcon, Search as SearchIcon, UserPlus } from 'lucide-react'
 import { createBrowserClient } from '@/lib/supabase/client'
+import { normalizeRole } from '@/lib/utils/role'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import NotificationsBell from '@/components/NotificationsBell'
 import AuthNav from '@/components/AuthNav'
@@ -35,7 +36,7 @@ export default function TopNav() {
     if (!loggedIn) { setRole(null); return }
     fetch('/api/auth-status', { cache: 'no-store' })
       .then(r => r.json())
-      .then((j) => setRole((j?.profile?.role as any) || null))
+      .then((j) => setRole(j?.profile?.role ? normalizeRole(j.profile.role) : null))
       .catch(()=> setRole(null))
   }, [loggedIn])
   // Close menus on route change
