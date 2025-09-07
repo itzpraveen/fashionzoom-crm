@@ -1,11 +1,14 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { unstable_noStore as noStore } from 'next/cache'
 import { createDemoSupabase } from './demo'
 
 // Read-only client for Server Components/pages: never mutates cookies.
 // Prevents accidental sign-outs when Supabase SDK attempts to rotate/clear cookies
 // during a render (which can be disallowed in RSC and lead to cookie loss).
 export function createServerSupabase() {
+  // Ensure this helper is never invoked inside a cached scope
+  noStore()
   if (process.env.NEXT_PUBLIC_DEMO === '1') return createDemoSupabase()
   const cookieStore = cookies()
   return createServerClient(
@@ -25,6 +28,7 @@ export function createServerSupabase() {
 // Mutable client for Route Handlers and Server Actions that legitimately
 // need to set/clear auth cookies (e.g., /auth/callback, /logout).
 export function createMutableServerSupabase() {
+  noStore()
   if (process.env.NEXT_PUBLIC_DEMO === '1') return createDemoSupabase()
   const cookieStore = cookies()
   return createServerClient(
