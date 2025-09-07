@@ -1,7 +1,7 @@
 "use client"
 import { useCallback, useEffect, useMemo, useState, useTransition } from 'react'
 import { createBrowserClient } from '@/lib/supabase/client'
-import { listEvents, listProgramsByEvent } from '@/actions/meta'
+// Use lightweight REST endpoints to avoid server action recursion
 import { upsertEnrollment } from '@/actions/leads'
 
 type Enrollment = {
@@ -35,10 +35,18 @@ export function LeadEnrollments({ leadId }: { leadId: string }) {
   }, [supabase, leadId])
 
   useEffect(() => { load() }, [load])
-  useEffect(() => { listEvents().then((data:any)=> setEvents(data || [])).catch(()=>{}) }, [])
+  useEffect(() => {
+    fetch('/api/meta/events', { cache: 'no-store' })
+      .then(r=>r.json())
+      .then((data:any)=> setEvents(Array.isArray(data) ? data : []))
+      .catch(()=>{})
+  }, [])
   useEffect(() => {
     if (!eventId) { setPrograms([]); setProgramId(''); return }
-    listProgramsByEvent(eventId).then((data:any)=> setPrograms(data || [])).catch(()=>{})
+    fetch(`/api/meta/programs?eventId=${encodeURIComponent(eventId)}`, { cache: 'no-store' })
+      .then(r=>r.json())
+      .then((data:any)=> setPrograms(Array.isArray(data) ? data : []))
+      .catch(()=>{})
   }, [eventId])
 
   return (

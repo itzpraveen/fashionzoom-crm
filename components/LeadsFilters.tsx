@@ -13,9 +13,10 @@ export function LeadsFilters({ status, search, due }: { status?: string; search?
   const [programId, setProgramId] = React.useState<string | undefined>(() => params?.get('program_id') || undefined)
 
   React.useEffect(() => {
-    import('@/actions/meta').then(({ listEvents }) => {
-      listEvents().then((data: any) => setEvents(data || [])).catch(() => {})
-    })
+    fetch('/api/meta/events', { cache: 'no-store' })
+      .then(r => r.json())
+      .then((data:any) => setEvents(Array.isArray(data) ? data : []))
+      .catch(() => {})
   }, [])
 
   // Keep event/program selection in sync with URL params and refresh programs when event changes
@@ -28,9 +29,10 @@ export function LeadsFilters({ status, search, due }: { status?: string; search?
       setPrograms([])
       return
     }
-    import('@/actions/meta').then(({ listProgramsByEvent }) => {
-      listProgramsByEvent(eventIdParam).then((data: any) => setPrograms(data || [])).catch(() => {})
-    })
+    fetch(`/api/meta/programs?eventId=${encodeURIComponent(eventIdParam)}`, { cache: 'no-store' })
+      .then(r=>r.json())
+      .then((data:any) => setPrograms(Array.isArray(data) ? data : []))
+      .catch(() => {})
   }, [eventIdParam, programIdParam])
 
   const buildUrl = useCallback((next: Record<string, string | undefined>) => {
@@ -110,10 +112,14 @@ export function LeadsFilters({ status, search, due }: { status?: string; search?
           setProgramId(undefined)
           router.push(buildUrl({ event_id: val, program_id: undefined }))
           // refresh programs
-          import('@/actions/meta').then(({ listProgramsByEvent }) => {
-            if (val) listProgramsByEvent(val).then((data: any) => setPrograms(data || [])).catch(() => {})
-            else setPrograms([])
-          })
+          if (val) {
+            fetch(`/api/meta/programs?eventId=${encodeURIComponent(val)}`, { cache: 'no-store' })
+              .then(r=>r.json())
+              .then((data:any) => setPrograms(Array.isArray(data) ? data : []))
+              .catch(() => {})
+          } else {
+            setPrograms([])
+          }
         }}
       >
         <option value="">All Events</option>
