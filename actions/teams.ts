@@ -40,14 +40,28 @@ export async function bootstrapFirstAdmin() {
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
   if (!serviceKey) throw new Error('Service key missing')
 
-  // Check if any admin exists
-  const r = await fetch(`${url}/rest/v1/profiles?role=eq.ADMIN&select=id&limit=1`, {
+  // Check if any admin exists. Ignore stale admins whose auth user no longer exists.
+  // Fetch up to a few admin profile ids, then verify against auth.
+  const r = await fetch(`${url}/rest/v1/profiles?role=eq.ADMIN&select=id&limit=5`, {
     headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` }
   })
   if (!r.ok) throw new Error('Failed to verify admin status')
-  const arr: any[] = await r.json().catch(() => [])
-  if (Array.isArray(arr) && arr.length > 0) {
-    throw new Error('An admin already exists')
+  const adminProfiles: Array<{ id: string }>|null = await r.json().catch(() => null)
+  if (Array.isArray(adminProfiles) && adminProfiles.length > 0) {
+    // Verify if at least one admin id corresponds to an active auth user
+    const checks = await Promise.all(adminProfiles.map(async (p) => {
+      const u = await fetch(`${url}/auth/v1/admin/users/${p.id}`, {
+        headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` }
+      })
+      if (!u.ok) return false
+      const j: any = await u.json().catch(() => null)
+      return !!j?.user?.id
+    }))
+    const hasValidAdmin = checks.some(Boolean)
+    if (hasValidAdmin) {
+      throw new Error('An admin already exists')
+    }
+    // No valid auth users among admin profiles; continue bootstrap
   }
 
   // Elevate current user
