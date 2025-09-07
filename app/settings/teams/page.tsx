@@ -127,74 +127,80 @@ export default async function TeamsSettingsPage() {
     <div className="space-y-6">
       <h1 className="text-xl font-semibold">Teams</h1>
 
-      <section className="space-y-2">
-        <h2 className="font-medium">Create Team</h2>
-        <form action={createTeamAction} className="flex gap-2">
-          <input name="name" placeholder="Team name" className="form-input" required />
-          <SubmitButton className="btn-primary" pendingLabel="Creating…">Create</SubmitButton>
-        </form>
-      </section>
+      {/* Quick actions */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Create Team */}
+        <section className="card p-3 md:p-4 space-y-2">
+          <h2 className="font-medium">Create Team</h2>
+          <form action={createTeamAction} className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <input name="name" placeholder="Team name" className="form-input sm:col-span-2" required />
+            <SubmitButton className="btn-primary" pendingLabel="Creating…">Create</SubmitButton>
+          </form>
+        </section>
 
-      <section id="invite" className="space-y-2">
-        <h2 className="font-medium">Invite User</h2>
-        <form action={inviteAction} className="grid grid-cols-1 sm:grid-cols-5 gap-2 items-end">
-          <div>
-            <label className="block text-xs text-muted">Email</label>
-            <input name="email" type="email" placeholder="user@example.com" className="form-input" required />
-          </div>
-          <div>
-            <label className="block text-xs text-muted">Team (optional)</label>
-            <select name="teamId" className="form-input">
-              <option value="">—</option>
-              {(teams||[]).map((t: any) => (<option key={t.id} value={t.id}>{t.name}</option>))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs text-muted">Role</label>
-            <select name="role" className="form-input">
-              {['TELECALLER','MANAGER','ADMIN'].map(r => (<option key={r} value={r}>{r}</option>))}
-            </select>
-          </div>
-          <div className="sm:col-span-2">
-            <SubmitButton className="btn-primary" pendingLabel="Sending…">Send Invite</SubmitButton>
-            <p className="text-xs text-muted mt-1">User will receive a magic link to sign in and complete profile.</p>
-          </div>
-        </form>
-      </section>
+        {/* Invite User */}
+        <section id="invite" className="card p-3 md:p-4 space-y-2">
+          <h2 className="font-medium">Invite User</h2>
+          <form action={inviteAction} className="grid grid-cols-1 sm:grid-cols-6 gap-2 items-end">
+            <div className="sm:col-span-3">
+              <label className="block text-xs text-muted">Email</label>
+              <input name="email" type="email" placeholder="user@example.com" className="form-input" required />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="block text-xs text-muted">Team (optional)</label>
+              <select name="teamId" className="form-input">
+                <option value="">—</option>
+                {(teams||[]).map((t: any) => (<option key={t.id} value={t.id}>{t.name}</option>))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-muted">Role</label>
+              <select name="role" className="form-input">
+                {['TELECALLER','MANAGER','ADMIN'].map(r => (<option key={r} value={r}>{r}</option>))}
+              </select>
+            </div>
+            <div className="sm:col-span-6 flex items-center justify-between">
+              <p className="text-xs text-muted">Sends a magic link to sign in and finish profile.</p>
+              <SubmitButton className="btn-primary" pendingLabel="Sending…">Send Invite</SubmitButton>
+            </div>
+          </form>
+        </section>
 
-      <section className="space-y-2">
-        <h2 className="font-medium">Assign User</h2>
-        <form action={assignAction} className="grid grid-cols-1 sm:grid-cols-5 gap-2 items-end">
-          <div>
-            <label className="block text-xs text-muted">Email (or User ID)</label>
-            <input name="email" placeholder="user@example.com" className="form-input" />
-          </div>
-          <div>
-            <label className="block text-xs text-muted">User ID (optional)</label>
-            <input name="userId" placeholder="uuid" className="form-input" />
-          </div>
-          <div>
-            <label className="block text-xs text-muted">Team</label>
-            <select name="teamId" className="form-input" required>
-              {(teams||[]).map((t: any) => (<option key={t.id} value={t.id}>{t.name}</option>))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs text-muted">Role</label>
-            <select name="role" className="form-input">
-              {['TELECALLER','MANAGER','ADMIN'].map(r => (<option key={r} value={r}>{r}</option>))}
-            </select>
-          </div>
-          <div>
-            <SubmitButton className="btn-primary" pendingLabel="Assigning…">Assign</SubmitButton>
-          </div>
-        </form>
-      </section>
+        {/* Assign User */}
+        <section className="card p-3 md:p-4 space-y-2">
+          <h2 className="font-medium">Assign User</h2>
+          <form action={assignAction} className="grid grid-cols-1 sm:grid-cols-6 gap-2 items-end">
+            <div className="sm:col-span-3">
+              <label className="block text-xs text-muted">Email (or User ID)</label>
+              <input name="email" placeholder="user@example.com" className="form-input" />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="block text-xs text-muted">User ID (optional)</label>
+              <input name="userId" placeholder="uuid" className="form-input" />
+            </div>
+            <div className="sm:col-span-3">
+              <label className="block text-xs text-muted">Team</label>
+              <select name="teamId" className="form-input" required>
+                {(teams||[]).map((t: any) => (<option key={t.id} value={t.id}>{t.name}</option>))}
+              </select>
+            </div>
+            <div className="sm:col-span-2">
+              <label className="block text-xs text-muted">Role</label>
+              <select name="role" className="form-input">
+                {['TELECALLER','MANAGER','ADMIN'].map(r => (<option key={r} value={r}>{r}</option>))}
+              </select>
+            </div>
+            <div className="sm:col-span-1">
+              <SubmitButton className="btn-primary w-full" pendingLabel="Assigning…">Assign</SubmitButton>
+            </div>
+          </form>
+        </section>
+      </div>
 
       <section className="space-y-2">
         <h2 className="font-medium">Members</h2>
         {/* Desktop table */}
-        <div className="overflow-x-auto hidden sm:block">
+        <div className="overflow-x-auto hidden sm:block card p-3 md:p-4">
           <table className="min-w-full text-sm">
             <thead>
               <tr className="text-left text-muted">
@@ -271,7 +277,7 @@ export default async function TeamsSettingsPage() {
 
       <section className="space-y-2">
         <h2 className="font-medium">Teams</h2>
-        <form action={moveMembersAction} className="flex flex-wrap items-end gap-2 mb-2">
+        <form action={moveMembersAction} className="card p-3 md:p-4 flex flex-wrap items-end gap-2 mb-2">
           <div>
             <label className="block text-xs text-muted">Move members from</label>
             <select name="fromTeamId" className="form-input" required>
@@ -287,7 +293,7 @@ export default async function TeamsSettingsPage() {
           <SubmitButton pendingLabel="Moving…" className="btn-primary">Move Members</SubmitButton>
         </form>
         {/* Desktop table */}
-        <div className="overflow-x-auto hidden sm:block">
+        <div className="overflow-x-auto hidden sm:block card p-3 md:p-4">
           <table className="min-w-full text-sm">
             <thead>
               <tr className="text-left text-muted">
