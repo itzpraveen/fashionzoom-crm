@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { createLeadsService } from '@/lib/services/leads.service'
 import { queryCache } from '@/lib/cache/query-cache'
+import { normalizeRole } from '@/lib/utils/role'
 
 const BulkUpdateSchema = z.object({
   ids: z.array(z.string().uuid()).min(1).max(100),
@@ -36,7 +37,7 @@ export async function bulkUpdateLeads(input: {
     .eq('id', user.id)
     .single()
   
-  const role = profile?.role as string
+  const role = normalizeRole(profile?.role)
   
   // Only managers and admins can bulk update owner/team
   if ((validated.updates.owner_id || validated.updates.team_id) && 
@@ -95,7 +96,7 @@ export async function bulkAssignLeads(input: {
     .eq('id', user.id)
     .single()
   
-  const role = profile?.role as string
+  const role = normalizeRole(profile?.role)
   if (role !== 'MANAGER' && role !== 'ADMIN') {
     throw new Error('Only managers and admins can reassign leads')
   }

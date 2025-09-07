@@ -2,6 +2,7 @@
 import { z } from 'zod'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { normalizeRole } from '@/lib/utils/role'
 
 const TemplateSchema = z.object({
   // Accept friendly case but normalize to DB enum (uppercase)
@@ -15,7 +16,7 @@ async function requireManagerOrAdmin() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
   const { data: me } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-  const role = (me?.role ?? 'TELECALLER') as string
+  const role = normalizeRole(me?.role)
   if (role !== 'MANAGER' && role !== 'ADMIN') throw new Error('Forbidden')
   return supabase
 }
