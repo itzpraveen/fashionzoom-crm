@@ -35,9 +35,24 @@ export default function LeadsTable({ leads, role, assignToMe }: { leads: LeadRow
   }
   return (
     <DataTable
-      columns={["Name","Phone","City","Source","Status","Score","Next Best","SLA","Next","Last Contacted","Disposition","Owner","Remarks","Actions"]}
+      columns={[
+        'Name','Phone','City','Source','Status','Score','Next Best','SLA','Next','Last Contacted','Disposition','Owner','Remarks','Actions'
+      ]}
       colClasses={[
-        'w-48', 'w-32', 'w-28', 'w-28', 'w-24', 'w-16', 'w-40', 'w-24', 'w-40', 'w-40', 'w-28', 'w-32', 'w-[18rem]', 'w-[20rem]'
+        'w-48',
+        'w-32',
+        'w-28 hidden md:table-cell',
+        'w-28 hidden md:table-cell',
+        'w-24 hidden sm:table-cell',
+        'w-16 hidden lg:table-cell',
+        'w-40 hidden xl:table-cell',
+        'w-24 hidden xl:table-cell',
+        'w-40 hidden xl:table-cell',
+        'w-40 hidden xl:table-cell',
+        'w-28 hidden lg:table-cell',
+        'w-32 hidden lg:table-cell',
+        'w-[18rem] hidden xl:table-cell',
+        'w-[20rem] hidden md:table-cell'
       ]}
       sticky
     >
@@ -70,24 +85,24 @@ export default function LeadsTable({ leads, role, assignToMe }: { leads: LeadRow
               <Link href={`/leads/${l.id}`} className="hover:underline">{l.full_name || '—'}</Link>
             </td>
             <td className="py-2 pr-4 whitespace-nowrap">{phoneDisp}</td>
-            <td className="py-2 pr-4">{l.city || '—'}</td>
-            <td className="py-2 pr-4">{l.source}</td>
-            <td className="py-2 pr-4">{l.status}</td>
-            <td className="py-2 pr-4">{dispScore}</td>
-            <td className="py-2 pr-4 whitespace-nowrap" title={rec.reason}>
+            <td className="py-2 pr-4 hidden md:table-cell">{l.city || '—'}</td>
+            <td className="py-2 pr-4 hidden md:table-cell">{l.source}</td>
+            <td className="py-2 pr-4 hidden sm:table-cell">{l.status}</td>
+            <td className="py-2 pr-4 hidden lg:table-cell">{dispScore}</td>
+            <td className="py-2 pr-4 whitespace-nowrap hidden xl:table-cell" title={rec.reason}>
               {rec.link ? <a href={rec.link} target="_blank" rel="noreferrer" className="underline">{rec.label}</a> : rec.label}
             </td>
-            <td className="py-2 pr-4">
+            <td className="py-2 pr-4 hidden xl:table-cell">
               <span className={`px-2 py-0.5 rounded text-xs border border-line ${sla.status==='OVERDUE'?'bg-danger/15 text-danger':sla.status==='DUE_SOON'?'bg-warning/15 text-warning':'bg-black/5 text-fg/70 dark:bg-white/10 dark:text-white/90'}`} title={sla.hint}>{sla.status}</span>
             </td>
-            <td className="py-2 pr-4 whitespace-nowrap">{l.next_follow_up_at ? new Date(l.next_follow_up_at).toLocaleString() : '—'}</td>
-            <td className="py-2 pr-4 whitespace-nowrap" title={lastAct ? `${lastAct.type}${lastAct.outcome ? ' • ' + lastAct.outcome : ''}${lastAct.message ? '\n' + lastAct.message : ''}` : ''}>
+            <td className="py-2 pr-4 whitespace-nowrap hidden xl:table-cell">{l.next_follow_up_at ? new Date(l.next_follow_up_at).toLocaleString() : '—'}</td>
+            <td className="py-2 pr-4 whitespace-nowrap hidden xl:table-cell" title={lastAct ? `${lastAct.type}${lastAct.outcome ? ' • ' + lastAct.outcome : ''}${lastAct.message ? '\n' + lastAct.message : ''}` : ''}>
               {l.last_activity_at ? new Date(l.last_activity_at).toLocaleString() : '—'}
             </td>
-            <td className="py-2 pr-4">{lastAct?.outcome || '—'}</td>
-            <td className="py-2 pr-4">{l.owner?.full_name || '—'}</td>
-            <td className="py-2 pr-4 max-w-[16rem] truncate" title={remark || ''}>{remark || '—'}</td>
-            <td className="py-2 pr-4">
+            <td className="py-2 pr-4 hidden lg:table-cell">{lastAct?.outcome || '—'}</td>
+            <td className="py-2 pr-4 hidden lg:table-cell">{l.owner?.full_name || '—'}</td>
+            <td className="py-2 pr-4 max-w-[16rem] truncate hidden xl:table-cell" title={remark || ''}>{remark || '—'}</td>
+            <td className="py-2 pr-4 hidden md:table-cell">
               <div className="flex flex-wrap gap-2">
                 <a href={`tel:${normalizePhone(l.primary_phone) || l.primary_phone}`} className="px-2 py-1 rounded bg-white/10 text-xs">Call</a>
                 <a href={wa} target="_blank" rel="noopener noreferrer" className="px-2 py-1 rounded bg-white/10 text-xs">WA</a>
