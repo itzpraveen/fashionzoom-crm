@@ -54,7 +54,6 @@ export function AddLeadModal({ open, onClose }: Props) {
         role="dialog"
         aria-modal="true"
         aria-label="Add Lead"
-        id="add-lead"
         ref={contentRef}
         className="w-full max-w-xl bg-surface border border-line rounded-lg p-4 shadow-2xl max-h-[85vh] overflow-y-auto"
         onClick={(e)=>e.stopPropagation()}
