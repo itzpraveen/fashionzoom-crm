@@ -19,7 +19,7 @@ export function EventProgramPicker({
   const [programId, setProgramId] = useState<string | undefined>(value?.program_id)
 
   useEffect(() => {
-    fetch('/api/meta/events', { cache: 'no-store' })
+    fetch('/api/meta/events')
       .then(r=>r.json())
       .then((data:any)=> setEvents(Array.isArray(data) ? data : []))
       .catch(()=>{})
@@ -27,7 +27,7 @@ export function EventProgramPicker({
 
   useEffect(() => {
     if (!eventId) { setPrograms([]); setProgramId(undefined); return }
-    fetch(`/api/meta/programs?eventId=${encodeURIComponent(eventId)}`, { cache: 'no-store' })
+    fetch(`/api/meta/programs?eventId=${encodeURIComponent(eventId)}`)
       .then(r=>r.json())
       .then((data:any)=> setPrograms(Array.isArray(data) ? data : []))
       .catch(()=>{})

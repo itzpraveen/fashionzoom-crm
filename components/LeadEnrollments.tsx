@@ -36,14 +36,14 @@ export function LeadEnrollments({ leadId }: { leadId: string }) {
 
   useEffect(() => { load() }, [load])
   useEffect(() => {
-    fetch('/api/meta/events', { cache: 'no-store' })
+    fetch('/api/meta/events')
       .then(r=>r.json())
       .then((data:any)=> setEvents(Array.isArray(data) ? data : []))
       .catch(()=>{})
   }, [])
   useEffect(() => {
     if (!eventId) { setPrograms([]); setProgramId(''); return }
-    fetch(`/api/meta/programs?eventId=${encodeURIComponent(eventId)}`, { cache: 'no-store' })
+    fetch(`/api/meta/programs?eventId=${encodeURIComponent(eventId)}`)
       .then(r=>r.json())
       .then((data:any)=> setPrograms(Array.isArray(data) ? data : []))
       .catch(()=>{})

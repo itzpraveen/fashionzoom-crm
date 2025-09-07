@@ -11,6 +11,8 @@ function getPublicClient() {
   ) as any
 }
 
+export const runtime = 'edge'
+
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url)
@@ -23,9 +25,8 @@ export async function GET(req: Request) {
       .eq('event_id', eventId)
       .order('created_at', { ascending: true })
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-    return NextResponse.json(data || [])
+    return NextResponse.json(data || [], { headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=86400' } })
   } catch (e: any) {
     return NextResponse.json({ error: e?.message || 'Failed' }, { status: 500 })
   }
 }
-

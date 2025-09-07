@@ -13,7 +13,7 @@ export function LeadsFilters({ status, search, due }: { status?: string; search?
   const [programId, setProgramId] = React.useState<string | undefined>(() => params?.get('program_id') || undefined)
 
   React.useEffect(() => {
-    fetch('/api/meta/events', { cache: 'no-store' })
+    fetch('/api/meta/events')
       .then(r => r.json())
       .then((data:any) => setEvents(Array.isArray(data) ? data : []))
       .catch(() => {})
@@ -29,7 +29,7 @@ export function LeadsFilters({ status, search, due }: { status?: string; search?
       setPrograms([])
       return
     }
-    fetch(`/api/meta/programs?eventId=${encodeURIComponent(eventIdParam)}`, { cache: 'no-store' })
+    fetch(`/api/meta/programs?eventId=${encodeURIComponent(eventIdParam)}`)
       .then(r=>r.json())
       .then((data:any) => setPrograms(Array.isArray(data) ? data : []))
       .catch(() => {})
@@ -113,7 +113,7 @@ export function LeadsFilters({ status, search, due }: { status?: string; search?
           router.push(buildUrl({ event_id: val, program_id: undefined }))
           // refresh programs
           if (val) {
-            fetch(`/api/meta/programs?eventId=${encodeURIComponent(val)}`, { cache: 'no-store' })
+            fetch(`/api/meta/programs?eventId=${encodeURIComponent(val)}`)
               .then(r=>r.json())
               .then((data:any) => setPrograms(Array.isArray(data) ? data : []))
               .catch(() => {})
