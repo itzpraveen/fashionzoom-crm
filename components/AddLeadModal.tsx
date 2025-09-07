@@ -1,5 +1,5 @@
 "use client"
-import { useState, useTransition } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 import { createLead } from '@/actions/leads'
 import { EventProgramPicker } from './EventProgramPicker'
 
@@ -27,10 +27,19 @@ export function AddLeadModal({ open, onClose }: Props) {
     consent: false,
   })
 
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    window.addEventListener('keydown', onKey)
+    return () => { document.body.style.overflow = prevOverflow; window.removeEventListener('keydown', onKey) }
+  }, [open, onClose])
+
   if (!open) return null
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur flex items-end sm:items-center justify-center p-3">
-      <div className="w-full max-w-lg bg-surface border border-line rounded p-4 shadow-lg">
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur flex items-end sm:items-center justify-center p-3" onClick={onClose}>
+      <div role="dialog" aria-modal="true" aria-label="Add Lead" className="w-full max-w-xl bg-surface border border-line rounded-lg p-4 shadow-2xl" onClick={(e)=>e.stopPropagation()}>
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-lg font-semibold">Add Lead</h3>
           <button onClick={onClose} aria-label="Close" className="text-muted">✕</button>
@@ -75,7 +84,7 @@ export function AddLeadModal({ open, onClose }: Props) {
             </div>
             <div>
               <label className="block text-sm">Phone*</label>
-              <input required inputMode="tel" className="form-input" value={form.primary_phone} onChange={e=>setForm(f=>({...f, primary_phone: e.target.value}))} />
+              <input required inputMode="tel" autoFocus className="form-input" value={form.primary_phone} onChange={e=>setForm(f=>({...f, primary_phone: e.target.value}))} />
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
