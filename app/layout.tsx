@@ -40,7 +40,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   return (
     <html lang="en">
-      <body className="bg-grid overflow-x-hidden">
+      <body className="overflow-x-hidden md:bg-grid">
         {/* Skip link for keyboard users */}
         <a href="#content" className="visually-hidden focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:bg-primary focus:text-white focus:px-3 focus:py-2 focus:rounded">Skip to content</a>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
@@ -51,7 +51,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             <link rel="preconnect" href={supabaseUrl} crossOrigin="anonymous" />
           </>
         ) : null}
-        <header className="sticky top-0 z-30 border-b border-white/10 bg-gradient-to-b from-black/5 to-transparent backdrop-blur pt-[env(safe-area-inset-top)]">
+        <header className="sticky top-0 z-30 border-b border-white/10 bg-gradient-to-b from-black/5 to-transparent md:backdrop-blur pt-[env(safe-area-inset-top)]">
           <TopNav />
         </header>
         <main id="content" role="main" className="mx-auto max-w-6xl px-4 py-4 pb-20 sm:pb-6">
