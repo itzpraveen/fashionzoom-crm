@@ -35,7 +35,8 @@ export default async function TeamsSettingsPage() {
       </div>
     )
   }
-  if (normalizeRole(me?.role) !== 'ADMIN') {
+  const myRole = normalizeRole(me?.role)
+  if (myRole !== 'ADMIN' && myRole !== 'MANAGER') {
     // If there are no admins yet, offer a one-time bootstrap to elevate self.
     // Uses service role on the server (see actions/teams.ts::bootstrapFirstAdmin).
     async function promoteSelf() {
@@ -146,6 +147,7 @@ export default async function TeamsSettingsPage() {
 
       {/* Actions split into separate sections for clarity */}
       {/* Create Team */}
+      {myRole === 'ADMIN' && (
       <section className="card p-3 md:p-4 space-y-2">
         <h2 className="font-medium">Create Team</h2>
         <form action={createTeamAction} className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -153,6 +155,7 @@ export default async function TeamsSettingsPage() {
           <SubmitButton className="btn-primary" pendingLabel="Creating…">Create</SubmitButton>
         </form>
       </section>
+      )}
 
       {/* Invite User */}
       <section id="invite" className="card p-3 md:p-4 space-y-2">
@@ -183,6 +186,7 @@ export default async function TeamsSettingsPage() {
       </section>
 
       {/* Assign User */}
+      {myRole === 'ADMIN' && (
       <section className="card p-3 md:p-4 space-y-2">
         <h2 className="font-medium">Assign User</h2>
         <form action={assignAction} className="grid grid-cols-1 sm:grid-cols-6 gap-2 items-end">
@@ -211,6 +215,7 @@ export default async function TeamsSettingsPage() {
           </div>
         </form>
       </section>
+      )}
 
       <section className="space-y-2">
         <h2 className="font-medium">Members</h2>
@@ -220,6 +225,7 @@ export default async function TeamsSettingsPage() {
           resendAction={resendAction}
           removeTeamAction={removeTeamAction}
           demoteAction={setRoleAction}
+          canManage={myRole === 'ADMIN'}
         />
       </section>
 

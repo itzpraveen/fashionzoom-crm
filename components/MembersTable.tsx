@@ -6,13 +6,15 @@ export default function MembersTable({
   teams,
   resendAction,
   removeTeamAction,
-  demoteAction
+  demoteAction,
+  canManage = true
 }: {
   members: any[]
   teams: any[]
   resendAction: (formData: FormData) => void
   removeTeamAction: (formData: FormData) => void
   demoteAction: (formData: FormData) => void
+  canManage?: boolean
 }) {
   const [q, setQ] = useState('')
   const filtered = useMemo(() => {
@@ -47,7 +49,7 @@ export default function MembersTable({
               <th className="py-2 pr-4">Role</th>
               <th className="py-2 pr-4">Team</th>
               <th className="py-2 pr-4">User ID</th>
-              <th className="py-2 pr-4">Actions</th>
+              {canManage && <th className="py-2 pr-4">Actions</th>}
             </tr>
           </thead>
           <tbody>
@@ -57,6 +59,7 @@ export default function MembersTable({
                 <td className="py-2 pr-4">{m.role}</td>
                 <td className="py-2 pr-4">{teams.find((t:any)=>t.id===m.team_id)?.name || '—'}</td>
                 <td className="py-2 pr-4 font-mono text-xs">{m.id}</td>
+                {canManage && (
                 <td className="py-2 pr-4">
                   <div className="flex flex-wrap gap-2">
                     <form action={resendAction}>
@@ -75,6 +78,7 @@ export default function MembersTable({
                     )}
                   </div>
                 </td>
+                )}
               </tr>
             ))}
           </tbody>
@@ -83,4 +87,3 @@ export default function MembersTable({
     </div>
   )
 }
-

@@ -101,7 +101,7 @@ export default function TopNav() {
                     <Users size={16} aria-hidden="true" /> <span>Teams</span>
                   </Link>
                 )}
-                {role === 'ADMIN' && (
+                {(role === 'ADMIN' || role === 'MANAGER') && (
                   <Link className="flex items-center gap-2 px-3 py-2 rounded hover:bg-white/10" href="/settings/teams#invite" prefetch={false} role="menuitem">
                     <UserPlus size={16} aria-hidden="true" /> <span>Invite</span>
                   </Link>
@@ -158,6 +158,9 @@ export default function TopNav() {
                           <Link className="flex items-center gap-2 px-3 py-1.5 rounded hover:bg-white/10" href="/settings/teams" prefetch={false}><Users size={14} /> Teams</Link>
                           <Link className="flex items-center gap-2 px-3 py-1.5 rounded hover:bg-white/10" href="/settings/teams#invite" prefetch={false}><UserPlus size={14} /> Invite</Link>
                         </>
+                      )}
+                      {role === 'MANAGER' && (
+                        <Link className="flex items-center gap-2 px-3 py-1.5 rounded hover:bg-white/10" href="/settings/teams#invite" prefetch={false}><UserPlus size={14} /> Invite</Link>
                       )}
                       <Link className="flex items-center gap-2 px-3 py-1.5 rounded hover:bg-white/10" href="/settings/templates" prefetch={false}><FileText size={14} /> Templates</Link>
                       <Link className="flex items-center gap-2 px-3 py-1.5 rounded hover:bg-white/10" href="/import" prefetch={false}><Upload size={14} /> Import</Link>
