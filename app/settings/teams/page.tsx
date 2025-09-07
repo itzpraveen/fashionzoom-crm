@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation'
 import { createTeam, assignUserToTeam, inviteUser, resendInvite, removeUserFromTeam, setUserRole, deleteTeam, renameTeam, moveMembers, bootstrapFirstAdmin } from '@/actions/teams'
 import SubmitButton from '@/components/SubmitButton'
 import ConfirmSubmit from '@/components/ConfirmSubmit'
+// Read env directly to avoid hard-failing in demo mode
+import { bootstrapProfile } from '@/actions/auth'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,11 +15,19 @@ export default async function TeamsSettingsPage() {
   const { data: me } = await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle()
   // If profile is missing (common if callback bootstrap failed), show a friendly message
   if (!me) {
+    async function initProfile() {
+      'use server'
+      try { await bootstrapProfile() } catch {}
+    }
     return (
-      <div className="space-y-2">
+      <div className="space-y-3">
         <h1 className="text-xl font-semibold">Teams</h1>
-        <p className="text-sm text-muted">Your profile isn’t initialized yet. Please sign out and sign back in to complete setup.</p>
-        <a href="/logout" className="btn-primary inline-block px-3 py-2 rounded">Logout</a>
+        <p className="text-sm text-muted">Your profile isn’t initialized yet.</p>
+        <div className="flex items-center gap-2">
+          <form action={initProfile}><SubmitButton className="btn-primary" pendingLabel="Fixing…">Initialize Profile</SubmitButton></form>
+          <a href="/logout" className="px-3 py-2 rounded bg-white/10 text-sm">Logout</a>
+        </div>
+        <p className="text-xs text-muted">If this keeps showing up, sign out and sign back in.</p>
       </div>
     )
   }
@@ -39,7 +49,13 @@ export default async function TeamsSettingsPage() {
         <form action={promoteSelf}>
           <button className="px-3 py-2 rounded bg-white/10 text-sm">I am the first admin</button>
         </form>
-        <p className="text-xs text-muted">Tip: This button only works if no admins exist yet. Otherwise, ask an existing admin to grant you access from this page.</p>
+        <div className="space-y-1">
+          <p className="text-xs text-muted">Tip: This works only when no admins exist yet. Otherwise, ask an existing admin to grant you access here.</p>
+          {(!process.env.SUPABASE_SERVICE_ROLE_KEY) && (
+            <p className="text-xs text-amber-300">Server not fully configured: set SUPABASE_SERVICE_ROLE_KEY in your environment to enable the “first admin” button.</p>
+          )}
+          <p className="text-xs text-muted">Alternatively, use the bootstrap URL once: <code className="font-mono">/admin/bootstrap?email=you@example.com&token=YOUR_TOKEN</code>.</p>
+        </div>
       </div>
     )
   }
@@ -69,9 +85,8 @@ export default async function TeamsSettingsPage() {
   }
   async function resendAction(formData: FormData) {
     'use server'
-    const email = String(formData.get('email') || '')
     const userId = String(formData.get('userId') || '')
-    await resendInvite({ email: email || undefined, userId: userId || undefined })
+    await resendInvite({ userId: userId || undefined })
   }
   async function removeTeamAction(formData: FormData) {
     'use server'
@@ -82,6 +97,12 @@ export default async function TeamsSettingsPage() {
     'use server'
     const uid = String(formData.get('userId') || '')
     await setUserRole({ userId: uid, role: 'TELECALLER' })
+  }
+  async function setRoleAction(formData: FormData) {
+    'use server'
+    const uid = String(formData.get('userId') || '')
+    const role = String(formData.get('role') || 'TELECALLER') as 'TELECALLER'|'MANAGER'|'ADMIN'
+    await setUserRole({ userId: uid, role })
   }
   async function deleteTeamAction(formData: FormData) {
     'use server'
@@ -193,7 +214,6 @@ export default async function TeamsSettingsPage() {
                   <td className="py-2 pr-4">
                     <div className="flex flex-wrap gap-2">
                       <form action={resendAction}>
-                        <input type="hidden" name="email" value={m.email || ''} />
                         <input type="hidden" name="userId" value={m.id} />
                         <button className="px-2 py-1 rounded bg-white/10 text-xs">Resend invite</button>
                       </form>
@@ -201,12 +221,13 @@ export default async function TeamsSettingsPage() {
                         <input type="hidden" name="userId" value={m.id} />
                         <button className="px-2 py-1 rounded bg-white/10 text-xs">Remove from team</button>
                       </form>
-                      {m.role !== 'TELECALLER' && (
-                        <form action={demoteAction}>
-                          <input type="hidden" name="userId" value={m.id} />
-                          <button className="px-2 py-1 rounded bg-white/10 text-xs">Demote to Telecaller</button>
-                        </form>
-                      )}
+                      <form action={setRoleAction} className="flex items-center gap-2">
+                        <input type="hidden" name="userId" value={m.id} />
+                        <select name="role" defaultValue={m.role} className="form-input text-xs">
+                          {['TELECALLER','MANAGER','ADMIN'].map(r => (<option key={r} value={r}>{r}</option>))}
+                        </select>
+                        <SubmitButton pendingLabel="Saving…" className="px-2 py-1 rounded bg-white/10 text-xs">Update role</SubmitButton>
+                      </form>
                     </div>
                   </td>
                 </tr>
@@ -227,7 +248,6 @@ export default async function TeamsSettingsPage() {
               </div>
               <div className="mt-2 flex flex-wrap gap-2">
                 <form action={resendAction}>
-                  <input type="hidden" name="email" value={m.email || ''} />
                   <input type="hidden" name="userId" value={m.id} />
                   <button className="touch-target px-3 py-2 rounded bg-white/10 text-xs">Resend invite</button>
                 </form>
@@ -235,12 +255,13 @@ export default async function TeamsSettingsPage() {
                   <input type="hidden" name="userId" value={m.id} />
                   <button className="touch-target px-3 py-2 rounded bg-white/10 text-xs">Remove</button>
                 </form>
-                {m.role !== 'TELECALLER' && (
-                  <form action={demoteAction}>
-                    <input type="hidden" name="userId" value={m.id} />
-                    <button className="touch-target px-3 py-2 rounded bg-white/10 text-xs">Demote</button>
-                  </form>
-                )}
+                <form action={setRoleAction} className="flex items-center gap-2">
+                  <input type="hidden" name="userId" value={m.id} />
+                  <select name="role" defaultValue={m.role} className="form-input text-xs">
+                    {['TELECALLER','MANAGER','ADMIN'].map(r => (<option key={r} value={r}>{r}</option>))}
+                  </select>
+                  <SubmitButton pendingLabel="Saving…" className="touch-target px-3 py-2 rounded bg-white/10 text-xs">Update</SubmitButton>
+                </form>
               </div>
             </div>
           ))}

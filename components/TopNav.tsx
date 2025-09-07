@@ -21,6 +21,7 @@ export default function TopNav() {
   const [loggedIn, setLoggedIn] = useState<boolean>(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [role, setRole] = useState<'TELECALLER'|'MANAGER'|'ADMIN'|null>(null)
   const settingsRef = useRef<HTMLDetailsElement | null>(null)
   const mobileRef = useRef<HTMLDetailsElement | null>(null)
   const isAuthRoute = pathname?.startsWith('/login') || pathname?.startsWith('/auth/')
@@ -30,6 +31,13 @@ export default function TopNav() {
     const { data } = supabase.auth.onAuthStateChange((_evt: any, session: any) => setLoggedIn(!!session?.user))
     return () => { data.subscription.unsubscribe() }
   }, [])
+  useEffect(() => {
+    if (!loggedIn) { setRole(null); return }
+    fetch('/api/auth-status', { cache: 'no-store' })
+      .then(r => r.json())
+      .then((j) => setRole((j?.profile?.role as any) || null))
+      .catch(()=> setRole(null))
+  }, [loggedIn])
   // Close menus on route change
   useEffect(() => { setSettingsOpen(false); setMobileOpen(false) }, [pathname])
   // Click-away + Esc to close menus
@@ -87,9 +95,11 @@ export default function TopNav() {
             </summary>
             <div className="absolute right-0 mt-2 min-w-56 rounded-lg border border-white/10 bg-surface shadow-xl shadow-black/30 p-1 z-50">
               <nav className="flex flex-col text-sm" aria-label="Settings" role="menu">
-                <Link className="flex items-center gap-2 px-3 py-2 rounded hover:bg-white/10" href="/settings/teams" prefetch={false} role="menuitem">
-                  <Users size={16} aria-hidden="true" /> <span>Teams</span>
-                </Link>
+                {role === 'ADMIN' && (
+                  <Link className="flex items-center gap-2 px-3 py-2 rounded hover:bg-white/10" href="/settings/teams" prefetch={false} role="menuitem">
+                    <Users size={16} aria-hidden="true" /> <span>Teams</span>
+                  </Link>
+                )}
                 <Link className="flex items-center gap-2 px-3 py-2 rounded hover:bg-white/10" href="/settings/templates" prefetch={false} role="menuitem">
                   <FileText size={16} aria-hidden="true" /> <span>Templates</span>
                 </Link>
@@ -137,7 +147,9 @@ export default function TopNav() {
                       <SettingsIcon size={16} /> Settings
                     </summary>
                     <div className="pl-3 mt-1 flex flex-col">
-                      <Link className="flex items-center gap-2 px-3 py-1.5 rounded hover:bg-white/10" href="/settings/teams" prefetch={false}><Users size={14} /> Teams</Link>
+                      {role === 'ADMIN' && (
+                        <Link className="flex items-center gap-2 px-3 py-1.5 rounded hover:bg-white/10" href="/settings/teams" prefetch={false}><Users size={14} /> Teams</Link>
+                      )}
                       <Link className="flex items-center gap-2 px-3 py-1.5 rounded hover:bg-white/10" href="/settings/templates" prefetch={false}><FileText size={14} /> Templates</Link>
                       <Link className="flex items-center gap-2 px-3 py-1.5 rounded hover:bg-white/10" href="/import" prefetch={false}><Upload size={14} /> Import</Link>
                       <Link className="flex items-center gap-2 px-3 py-1.5 rounded hover:bg-white/10" href="/settings/assignment-rules" prefetch={false}><ListChecks size={14} /> Assignment Rules</Link>
