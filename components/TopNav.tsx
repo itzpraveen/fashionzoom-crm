@@ -3,9 +3,10 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
-import { LayoutDashboard, Users, CalendarClock, FileText, Upload, ListChecks, LogOut, Settings as SettingsIcon, Menu as MenuIcon } from 'lucide-react'
+import { LayoutDashboard, Users, CalendarClock, FileText, Upload, ListChecks, LogOut, Settings as SettingsIcon, Menu as MenuIcon, Search as SearchIcon } from 'lucide-react'
 import { createBrowserClient } from '@/lib/supabase/client'
 import { ThemeToggle } from '@/components/ThemeToggle'
+import NotificationsBell from '@/components/NotificationsBell'
 import AuthNav from '@/components/AuthNav'
 
 const mainItems: { href: string; label: string }[] = [
@@ -20,6 +21,7 @@ export default function TopNav() {
   const [loggedIn, setLoggedIn] = useState<boolean>(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [role, setRole] = useState<'TELECALLER'|'MANAGER'|'ADMIN'|null>(null)
   const settingsRef = useRef<HTMLDetailsElement | null>(null)
   const mobileRef = useRef<HTMLDetailsElement | null>(null)
   const isAuthRoute = pathname?.startsWith('/login') || pathname?.startsWith('/auth/')
@@ -29,6 +31,13 @@ export default function TopNav() {
     const { data } = supabase.auth.onAuthStateChange((_evt: any, session: any) => setLoggedIn(!!session?.user))
     return () => { data.subscription.unsubscribe() }
   }, [])
+  useEffect(() => {
+    if (!loggedIn) { setRole(null); return }
+    fetch('/api/auth-status', { cache: 'no-store' })
+      .then(r => r.json())
+      .then((j) => setRole((j?.profile?.role as any) || null))
+      .catch(()=> setRole(null))
+  }, [loggedIn])
   // Close menus on route change
   useEffect(() => { setSettingsOpen(false); setMobileOpen(false) }, [pathname])
   // Click-away + Esc to close menus
@@ -43,13 +52,7 @@ export default function TopNav() {
     document.addEventListener('keydown', onEsc)
     return () => { document.removeEventListener('mousedown', onDocClick); document.removeEventListener('keydown', onEsc) }
   }, [])
-  const onSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      const q = (e.target as HTMLInputElement).value.trim()
-      if (!q) return
-      router.push(`/leads?search=${encodeURIComponent(q)}&view=table`)
-    }
-  }
+  // Search moved to Command Palette (Ctrl/Cmd+K)
   return (
     <nav aria-label="Top" className="mx-auto max-w-6xl px-4 py-2 flex items-center gap-3 text-sm">
       <Link href="/dashboard" className="font-semibold tracking-tight flex items-center gap-2" aria-label="Go to dashboard">
@@ -61,12 +64,17 @@ export default function TopNav() {
       {/* Desktop nav */}
       {loggedIn && !isAuthRoute && (
         <div className="ml-auto hidden sm:flex items-center gap-3">
-          <input
-            type="search"
-            placeholder="Search leads…"
-            className="form-input w-56"
-            onKeyDown={onSearch}
-          />
+          <button
+            type="button"
+            onClick={()=>window.dispatchEvent(new Event('open-cmdk'))}
+            className="hidden md:inline-flex items-center gap-2 rounded bg-white/10 px-3 py-2 text-sm"
+            title="Search (Ctrl/Cmd+K)"
+          >
+            <SearchIcon size={16} aria-hidden="true" />
+            <span>Search</span>
+            <span className="ml-1 hidden items-center gap-0.5 rounded border border-white/10 px-1 text-[10px] text-muted md:inline-flex">{navigator?.platform?.includes('Mac') ? '⌘ K' : 'Ctrl K'}</span>
+          </button>
+          <NotificationsBell />
           {mainItems.map(({ href, label }) => {
             const active = pathname?.startsWith(href)
             return (
@@ -87,9 +95,11 @@ export default function TopNav() {
             </summary>
             <div className="absolute right-0 mt-2 min-w-56 rounded-lg border border-white/10 bg-surface shadow-xl shadow-black/30 p-1 z-50">
               <nav className="flex flex-col text-sm" aria-label="Settings" role="menu">
-                <Link className="flex items-center gap-2 px-3 py-2 rounded hover:bg-white/10" href="/settings/teams" prefetch={false} role="menuitem">
-                  <Users size={16} aria-hidden="true" /> <span>Teams</span>
-                </Link>
+                {role === 'ADMIN' && (
+                  <Link className="flex items-center gap-2 px-3 py-2 rounded hover:bg-white/10" href="/settings/teams" prefetch={false} role="menuitem">
+                    <Users size={16} aria-hidden="true" /> <span>Teams</span>
+                  </Link>
+                )}
                 <Link className="flex items-center gap-2 px-3 py-2 rounded hover:bg-white/10" href="/settings/templates" prefetch={false} role="menuitem">
                   <FileText size={16} aria-hidden="true" /> <span>Templates</span>
                 </Link>
@@ -137,7 +147,9 @@ export default function TopNav() {
                       <SettingsIcon size={16} /> Settings
                     </summary>
                     <div className="pl-3 mt-1 flex flex-col">
-                      <Link className="flex items-center gap-2 px-3 py-1.5 rounded hover:bg-white/10" href="/settings/teams" prefetch={false}><Users size={14} /> Teams</Link>
+                      {role === 'ADMIN' && (
+                        <Link className="flex items-center gap-2 px-3 py-1.5 rounded hover:bg-white/10" href="/settings/teams" prefetch={false}><Users size={14} /> Teams</Link>
+                      )}
                       <Link className="flex items-center gap-2 px-3 py-1.5 rounded hover:bg-white/10" href="/settings/templates" prefetch={false}><FileText size={14} /> Templates</Link>
                       <Link className="flex items-center gap-2 px-3 py-1.5 rounded hover:bg-white/10" href="/import" prefetch={false}><Upload size={14} /> Import</Link>
                       <Link className="flex items-center gap-2 px-3 py-1.5 rounded hover:bg-white/10" href="/settings/assignment-rules" prefetch={false}><ListChecks size={14} /> Assignment Rules</Link>

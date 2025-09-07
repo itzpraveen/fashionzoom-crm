@@ -6,10 +6,11 @@ import { AddLeadButton } from '@/components/AddLeadButton'
 import { Pagination } from '@/components/Pagination'
 import { redirect } from 'next/navigation'
 import { LeadsFilters } from '@/components/LeadsFilters'
-import LeadsTable from '@/components/LeadsTable'
+import LeadsTable, { LeadRow } from '@/components/LeadsTable'
 import { updateLead } from '@/actions/leads'
 import { revalidatePath } from 'next/cache'
 import Link from 'next/link'
+import StickyHeader from '@/components/StickyHeader'
 
 export const dynamic = 'force-dynamic'
 
@@ -45,14 +46,12 @@ export default async function LeadsPage({
     }
   }
 
-  // Build query
+  // Base leads query (avoid heavy nested ordering by default)
   let query = supabase
     .from('leads')
     .select(`
       id, full_name, primary_phone, city, source, status, score, next_follow_up_at, created_at, last_activity_at, notes,
-      owner:profiles(full_name),
-      activities(outcome,type,message,created_at),
-      followups(remark,created_at)
+      owner:profiles(full_name)
     `, { count: 'exact' })
     .eq('owner_id', user.id)
     .eq('is_deleted', false)
@@ -80,13 +79,8 @@ export default async function LeadsPage({
     query = query.gte('next_follow_up_at', start.toISOString()).lt('next_follow_up_at', end.toISOString())
   }
   query = query.order('next_follow_up_at', { ascending: true, nullsFirst: false })
-  // Latest nested rows only
-  // @ts-ignore foreignTable typing
-  query = (query as any).order('created_at', { ascending: false, foreignTable: 'activities' }).limit(1, { foreignTable: 'activities' })
-  // @ts-ignore foreignTable typing
-  query = (query as any).order('created_at', { ascending: false, foreignTable: 'followups' }).limit(1, { foreignTable: 'followups' })
   
-  const { data: leads, count, error } = await query
+  const { data: baseLeads, count, error } = await query
   
   if (error) {
     console.error('Error fetching leads:', error)
@@ -94,6 +88,25 @@ export default async function LeadsPage({
   }
   
   const totalPages = Math.ceil((count || 0) / PAGE_SIZE)
+
+  // Optionally enrich with latest activity/followup for table view only
+  let leads: LeadRow[] = (baseLeads as any) || []
+  if (view === 'table' && Array.isArray(baseLeads) && baseLeads.length > 0) {
+    const ids = (baseLeads as any[]).map((l: any) => l.id)
+    const [actsRes, flsRes] = await Promise.all([
+      supabase.from('activities').select('lead_id,outcome,type,message,created_at').in('lead_id', ids).order('created_at', { ascending: false }),
+      supabase.from('followups').select('lead_id,remark,created_at').in('lead_id', ids).order('created_at', { ascending: false })
+    ])
+    const latestAct = new Map<string, any>()
+    actsRes.data?.forEach((a: any) => { if (!latestAct.has(a.lead_id)) latestAct.set(a.lead_id, a) })
+    const latestF = new Map<string, any>()
+    flsRes.data?.forEach((f: any) => { if (!latestF.has(f.lead_id)) latestF.set(f.lead_id, f) })
+    leads = (baseLeads as any[]).map((l: any) => ({
+      ...l,
+      activities: latestAct.get(l.id) ? [latestAct.get(l.id)] : [],
+      followups: latestF.get(l.id) ? [latestF.get(l.id)] : [],
+    })) as any
+  }
   
   async function assignToMe(formData: FormData) {
     'use server'
@@ -111,17 +124,39 @@ export default async function LeadsPage({
   return (
     <div className="space-y-4">
       {/* Header: title + actions */}
-      <div className="flex items-center justify-between gap-3">
-        <h1 className="text-lg sm:text-xl font-semibold">Leads</h1>
-        <div className="flex items-center gap-2">
+      <StickyHeader className="sticky top-0 z-10 -mx-4 px-4 py-2 bg-white/60 dark:bg-black/30 backdrop-blur supports-[backdrop-filter]:bg-white/5 border-b border-white/10">
+        <div className="flex items-center justify-between gap-3">
+          <h1 className="text-lg sm:text-xl font-semibold">Leads</h1>
+          <div className="flex items-center gap-2">
           <LeadsFilters status={searchParams.status} search={searchParams.search} due={searchParams.due} />
-          <div className="hidden sm:flex items-center gap-1 text-xs border border-white/10 rounded-md overflow-hidden">
-            <Link href={{ pathname: '/leads', query: { ...searchParams, view: 'cards' } }} className={`px-2 py-1 ${view==='cards'?'bg-white/10':''}`}>Cards</Link>
-            <Link href={{ pathname: '/leads', query: { ...searchParams, view: 'table' } }} className={`px-2 py-1 ${view==='table'?'bg-white/10':''}`}>Table</Link>
+          <nav
+            aria-label="Leads view"
+            role="tablist"
+            className="inline-flex items-center gap-1 text-xs rounded-lg bg-white/5 ring-1 ring-inset ring-white/10 p-0.5"
+          >
+            <Link
+              role="tab"
+              aria-selected={view==='cards'}
+              href={{ pathname: '/leads', query: { ...searchParams, view: 'cards' } }}
+              className={`px-2.5 py-1.5 rounded-md transition-colors ${view==='cards' ? 'bg-primary/20 text-primary' : 'text-muted hover:bg-white/10 hover:text-fg'}`}
+              prefetch
+            >
+              Cards
+            </Link>
+            <Link
+              role="tab"
+              aria-selected={view==='table'}
+              href={{ pathname: '/leads', query: { ...searchParams, view: 'table' } }}
+              className={`px-2.5 py-1.5 rounded-md transition-colors ${view==='table' ? 'bg-primary/20 text-primary' : 'text-muted hover:bg-white/10 hover:text-fg'}`}
+              prefetch
+            >
+              Table
+            </Link>
+          </nav>
+            <AddLeadButton />
           </div>
-          <AddLeadButton />
         </div>
-      </div>
+      </StickyHeader>
       
       {leads?.length === 0 ? (
         <EmptyState 

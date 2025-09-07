@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 import { useEffect, useState } from 'react'
-import { createBrowserClient } from '@/lib/supabase/client-with-retry'
+import { createBrowserClient } from '@/lib/supabase/client'
 
 type Tab = { href: string; label: string; badge?: number | null }
 
@@ -37,9 +37,12 @@ export default function DashboardTabs() {
   }, [])
 
   return (
-    <div className="border-b border-white/10">
-      {/* Rely on the parent page container; avoid nested padding to keep tabs aligned with titles */}
-      <nav className="-mb-px flex gap-4 overflow-x-auto" aria-label="Dashboard tabs">
+    <div className="flex items-center justify-between">
+      <nav
+        className="inline-flex gap-1 rounded-lg bg-white/5 p-1 ring-1 ring-inset ring-white/10"
+        aria-label="Dashboard tabs"
+        role="tablist"
+      >
         {tabs.map(({ href, label, badge }) => {
           const active = pathname?.startsWith(href)
           return (
@@ -47,12 +50,15 @@ export default function DashboardTabs() {
               key={href}
               href={href}
               prefetch
-              aria-current={active ? 'page' : undefined}
-              className={`px-3 py-2 border-b-2 flex items-center gap-2 ${active ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-fg'}`}
+              role="tab"
+              aria-selected={active}
+              className={`px-3 py-1.5 rounded-md flex items-center gap-2 transition-colors ${
+                active ? 'bg-primary/20 text-primary' : 'text-muted hover:bg-white/10 hover:text-fg'
+              }`}
             >
               <span>{label}</span>
               {typeof badge === 'number' && badge > 0 && (
-                <span className="inline-flex items-center justify-center min-w-5 h-5 rounded-full bg-primary/20 text-primary text-[11px] px-1">
+                <span className="inline-flex items-center justify-center min-w-5 h-5 rounded-full bg-primary/25 text-primary text-[11px] px-1">
                   {badge}
                 </span>
               )}

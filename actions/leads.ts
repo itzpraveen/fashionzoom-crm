@@ -3,17 +3,7 @@ import { z } from 'zod'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { simpleLeadScore } from '@/lib/phone'
 
-const rateLimiter = new Map<string, { count: number; ts: number }>()
-function limit(key: string, windowMs = 5000, max = 20) {
-  const now = Date.now()
-  const rec = rateLimiter.get(key)
-  if (!rec || now - rec.ts > windowMs) {
-    rateLimiter.set(key, { count: 1, ts: now })
-    return
-  }
-  rec.count++
-  if (rec.count > max) throw new Error('Too many requests, slow down')
-}
+import { rateLimit } from '@/lib/utils/rate-limit'
 
 export const saveDisposition = async (input: {
   leadId: string
@@ -33,7 +23,7 @@ export const saveDisposition = async (input: {
   const supabase = createServerSupabase()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
-  limit(user.id)
+  await rateLimit({ key: `user:${user.id}:saveDisposition`, limit: 20, windowMs: 5000 })
 
   // Insert activity
   const { data: act, error } = await supabase.from('activities').insert({
@@ -73,7 +63,7 @@ export const createFollowup = async (input: { leadId: string; dueAt: string; pri
   const supabase = createServerSupabase()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
-  limit(user.id)
+  await rateLimit({ key: `user:${user.id}:createFollowup`, limit: 20, windowMs: 5000 })
   await supabase.from('followups').insert({ lead_id: data.leadId, user_id: user.id, due_at: data.dueAt, priority: data.priority, remark: data.remark || null })
 }
 
@@ -83,7 +73,7 @@ export const updateLead = async (input: { id: string; patch: Record<string, unkn
   const supabase = createServerSupabase()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
-  limit(user.id)
+  await rateLimit({ key: `user:${user.id}:updateLead`, limit: 40, windowMs: 5000 })
 
   const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
   const role = (profile?.role ?? 'TELECALLER') as 'TELECALLER'|'MANAGER'|'ADMIN'
@@ -115,7 +105,7 @@ export const importLeads = async (rows: Array<{ full_name: string; primary_phone
   const supabase = createServerSupabase()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
-  limit(user.id, 10000, 200) // higher window for imports
+  await rateLimit({ key: `user:${user.id}:importLeads`, limit: 200, windowMs: 10000 })
 
   // batch upsert by normalized phone; ignore duplicates for speed
   const chunk = <T,>(arr: T[], size: number) => arr.reduce<T[][]>((acc, _, i) => (i % size ? acc : [...acc, arr.slice(i, i + size)]), [])
@@ -178,7 +168,7 @@ export const createLead = async (input: {
     const supabase = createServerSupabase()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { ok: false, error: 'Unauthorized' }
-    limit(user.id)
+    await rateLimit({ key: `user:${user.id}:createLead`, limit: 20, windowMs: 5000 })
 
     // Demo mode: write to in-memory store
     if (process.env.NEXT_PUBLIC_DEMO === '1') {
@@ -238,90 +228,41 @@ export const createLead = async (input: {
       }
       return { ok: false, error: 'Failed to create lead. Please try again.' }
     }
+    // Use server-side admin client (service role) for controlled upserts
+    const { getAdminClient } = await import('@/lib/supabase/admin')
+    const admin = getAdminClient()
 
-    const headers = {
-      apikey: serviceKey,
-      Authorization: `Bearer ${serviceKey}`,
-      'Content-Type': 'application/json',
-    }
-
-    await fetch(`${url}/rest/v1/profiles`, {
-      method: 'POST',
-      headers: { ...headers, Prefer: 'resolution=merge-duplicates,return=minimal' },
-      body: JSON.stringify({
+    // Ensure profile row exists (do not downgrade role)
+    const existingProfile = await admin.from('profiles').select('id,role,full_name').eq('id', user.id).maybeSingle()
+    if (!existingProfile.data) {
+      await admin.from('profiles').upsert({
         id: user.id,
         full_name: (user.user_metadata as any)?.name ?? null,
         role: 'TELECALLER',
         team_id: profile?.team_id ?? null
-      }),
-    })
+      }, { onConflict: 'id' })
+    } else if (!existingProfile.data.full_name && (user.user_metadata as any)?.name) {
+      await admin.from('profiles').update({ full_name: (user.user_metadata as any)?.name }).eq('id', user.id)
+    }
 
-    const resp = await fetch(`${url}/rest/v1/leads?select=id`, {
-      method: 'POST',
-      headers: { ...headers, Prefer: 'return=minimal' },
-      body: JSON.stringify(payload),
-    })
-    if (!resp.ok) {
-      const bodyText = await resp.text().catch(()=> '')
-      const lower = bodyText.toLowerCase()
-      if (resp.status === 409 || lower.includes('duplicate') || lower.includes('unique')) {
-        return { ok: false, error: 'A lead with this phone already exists.' }
-      }
-      if (resp.status === 401 || resp.status === 403) {
-        return { ok: false, error: 'Server configuration error (service role unauthorized).' }
-      }
-      const resp2 = await fetch(`${url}/rest/v1/leads?select=id`, {
-        method: 'POST',
-        headers: { ...headers, Prefer: 'return=minimal' },
-        body: JSON.stringify({ ...payload, team_id: null }),
-      })
-      if (!resp2.ok) {
-        const t2 = await resp2.text().catch(()=> '')
-        const l2 = t2.toLowerCase()
-        if (resp2.status === 409 || l2.includes('duplicate') || l2.includes('unique')) {
-          return { ok: false, error: 'A lead with this phone already exists.' }
-        }
-        if (resp2.status === 401 || resp2.status === 403) {
-          return { ok: false, error: 'Server configuration error (service role unauthorized).' }
-        }
+    // Insert lead; if team_id fails due to constraint, retry with null team
+    const ins = await admin.from('leads').insert(payload).select('id').single()
+    let leadId = (ins.data as any)?.id as string | undefined
+    if (ins.error) {
+      const ins2 = await admin.from('leads').insert({ ...payload, team_id: null }).select('id').single()
+      if (ins2.error) {
         return { ok: false, error: 'Failed to create lead. Please contact admin.' }
       }
-      // attempt to parse id if available
-      try {
-        const j = await resp2.json().catch(()=>null)
-        const leadId = Array.isArray(j) ? j[0]?.id : j?.id
-        if (leadId && (data.event_id || data.program_id)) {
-          await fetch(`${url}/rest/v1/lead_enrollments`, {
-            method: 'POST',
-            headers: { ...headers, Prefer: 'return=minimal' },
-            body: JSON.stringify({
-              lead_id: leadId,
-              event_id: data.event_id || null,
-              program_id: data.program_id || null,
-              status: 'INTERESTED'
-            })
-          })
-        }
-      } catch {}
-      return { ok: true }
+      leadId = (ins2.data as any)?.id
     }
-    // If created, optionally add enrollment
-    try {
-      const j = await resp.json().catch(()=>null)
-      const leadId = Array.isArray(j) ? j[0]?.id : j?.id
-      if (leadId && (data.event_id || data.program_id)) {
-        await fetch(`${url}/rest/v1/lead_enrollments`, {
-          method: 'POST',
-          headers: { ...headers, Prefer: 'return=minimal' },
-          body: JSON.stringify({
-            lead_id: leadId,
-            event_id: data.event_id || null,
-            program_id: data.program_id || null,
-            status: 'INTERESTED'
-          })
-        })
-      }
-    } catch {}
+    if (leadId && (data.event_id || data.program_id)) {
+      await admin.from('lead_enrollments').insert({
+        lead_id: leadId,
+        event_id: data.event_id || null,
+        program_id: data.program_id || null,
+        status: 'INTERESTED'
+      } as any)
+    }
     return { ok: true }
   } catch (e: any) {
     return { ok: false, error: e?.message || 'Unable to create lead' }
@@ -341,7 +282,7 @@ export const upsertEnrollment = async (input: { leadId: string; eventId: string;
   const supabase = createServerSupabase()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
-  limit(user.id)
+  await rateLimit({ key: `user:${user.id}:upsertEnrollment`, limit: 40, windowMs: 5000 })
 
   // Try to find an existing enrollment for lead + event (+ program if provided)
   let query = supabase.from('lead_enrollments').select('id').eq('lead_id', data.leadId).eq('event_id', data.eventId)

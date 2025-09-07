@@ -54,7 +54,19 @@ Run SQL migrations in Supabase:
 - supabase/sql/001_schema.sql
 - supabase/sql/010_seed.sql (optional seed of ~150 Kerala leads)
 - supabase/sql/020_relax_leads_insert_policy.sql (allow owners without team to create leads)
- - supabase/sql/030_admin_policies.sql (admin RLS policies for Teams/Templates/Assignment Rules/Audit Log)
+- supabase/sql/030_admin_policies.sql (admin RLS policies for Teams/Templates/Assignment Rules/Audit Log)
+
+### Admin bootstrap
+
+If you see “403 — Admins only” on `/settings/teams` after signing in, you likely don’t have any ADMIN users yet.
+
+- Quick fix from the UI: click “I am the first admin”. This requires `SUPABASE_SERVICE_ROLE_KEY` to be set on the server. It only works when there are truly no admins.
+- One‑time bootstrap by email: call `GET /admin/bootstrap?email=you@example.com&token=YOUR_TOKEN` with `SUPERADMIN_BOOTSTRAP_TOKEN` set in your env. This creates the auth user (if missing) and sets their `profiles.role` to `ADMIN`.
+- Once an admin exists, they can promote others from Settings → Teams.
+
+Troubleshooting tips:
+- Ensure `SUPABASE_SERVICE_ROLE_KEY` is present; without it, the “first admin” button cannot elevate.
+- Use `/api/auth-status` to verify your session and current role quickly.
 
 ### Edge Function (lead ingestion)
 Serve locally:
