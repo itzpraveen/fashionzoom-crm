@@ -4,37 +4,48 @@ import { cachedQuery } from '@/lib/cache/query-cache'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 
-export default async function DashboardOverviewPage() {
+export default async function DashboardOverviewPage({ searchParams }: { searchParams?: { scope?: 'me'|'all' } }) {
   const supabase = createServerSupabase()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
   const today = new Date(); today.setHours(0,0,0,0)
   const now = new Date().toISOString()
+  const { data: me } = await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle()
+  const role = (me?.role || 'TELECALLER').toString().toUpperCase()
+  const elevated = role === 'MANAGER' || role === 'ADMIN' || role === 'OWNER' || role === 'SUPERADMIN' || role === 'SUPER_ADMIN'
+  const scope = elevated ? (searchParams?.scope === 'me' ? 'me' : 'all') : 'me'
 
   // Cache the dashboard overview payload briefly to avoid repeated work on quick navigations
   const data = await cachedQuery(
-    `dash:overview:${user.id}`,
+    `dash:overview:${user.id}:${scope}`,
     async () => {
-      const [overdueCountRes, recentLeadsRes, overdueRes] = await Promise.all([
-        supabase
-          .from('followups')
-          .select('*', { count: 'exact', head: true })
-          .lt('due_at', now)
-          .eq('status', 'PENDING'),
-        supabase
-          .from('leads')
-          .select('id, full_name, city, source, created_at, primary_phone, status, score, next_follow_up_at, last_activity_at')
-          .gte('created_at', today.toISOString())
-          .order('created_at', { ascending: false })
-          .limit(5),
-        supabase
-          .from('followups')
-          .select('id, due_at, priority, remark, leads(full_name)')
-          .lt('due_at', now)
-          .eq('status', 'PENDING')
-          .order('due_at', { ascending: true })
-          .limit(5)
-      ])
+      // Scope filters
+      const overdueCountQ = supabase
+        .from('followups')
+        .select('*', { count: 'exact', head: true })
+        .lt('due_at', now)
+        .eq('status', 'PENDING')
+      const recentLeadsQ = supabase
+        .from('leads')
+        .select('id, full_name, city, source, created_at, primary_phone, status, score, next_follow_up_at, last_activity_at')
+        .gte('created_at', today.toISOString())
+        .order('created_at', { ascending: false })
+        .limit(5)
+      const overdueQ = supabase
+        .from('followups')
+        .select('id, due_at, priority, remark, leads(full_name), user_id')
+        .lt('due_at', now)
+        .eq('status', 'PENDING')
+        .order('due_at', { ascending: true })
+        .limit(5)
+
+      if (scope === 'me') {
+        overdueCountQ.eq('user_id', user.id)
+        overdueQ.eq('user_id', user.id)
+        recentLeadsQ.eq('owner_id', user.id)
+      }
+
+      const [overdueCountRes, recentLeadsRes, overdueRes] = await Promise.all([overdueCountQ, recentLeadsQ, overdueQ])
       return {
         overdueCount: overdueCountRes.count || 0,
         recentLeads: recentLeadsRes.data || [],
@@ -47,6 +58,15 @@ export default async function DashboardOverviewPage() {
   return (
     <div className="space-y-4">
       <DashboardTiles />
+
+      <div className="flex items-center justify-end">
+        {elevated && (
+          <nav className="inline-flex items-center gap-1 text-xs rounded-lg bg-white/5 ring-1 ring-inset ring-white/10 p-0.5" aria-label="Scope">
+            <Link href={{ pathname: '/dashboard/overview', query: { scope: 'me' } }} className={`px-2.5 py-1.5 rounded-md transition-colors ${scope==='me' ? 'bg-primary/20 text-primary' : 'text-muted hover:bg-white/10 hover:text-fg'}`}>My</Link>
+            <Link href={{ pathname: '/dashboard/overview', query: { scope: 'all' } }} className={`px-2.5 py-1.5 rounded-md transition-colors ${scope!=='me' ? 'bg-primary/20 text-primary' : 'text-muted hover:bg-white/10 hover:text-fg'}`}>All</Link>
+          </nav>
+        )}
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <section className="card p-3 md:p-4 space-y-3" aria-labelledby="overdue-heading">

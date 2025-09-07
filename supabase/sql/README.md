@@ -7,6 +7,7 @@ Order
 - 020_relax_leads_insert_policy.sql — minor policy relax for inserting leads without a team
 - 060_events_programs.sql — events/programs/enrollments tables + policies
 - 030_admin_policies.sql — admin/manager-friendly read/write policies for settings tables
+- 070_role_case_fix.sql — case-insensitive role helpers (is_admin / is_manager)
 
 Apply with Supabase SQL editor (quick)
 1) Open your Supabase project → SQL editor
@@ -21,6 +22,7 @@ psql "$DB_URL" -v ON_ERROR_STOP=1 -f supabase/sql/001_schema.sql
 psql "$DB_URL" -v ON_ERROR_STOP=1 -f supabase/sql/020_relax_leads_insert_policy.sql
 psql "$DB_URL" -v ON_ERROR_STOP=1 -f supabase/sql/060_events_programs.sql
 psql "$DB_URL" -v ON_ERROR_STOP=1 -f supabase/sql/030_admin_policies.sql
+psql "$DB_URL" -v ON_ERROR_STOP=1 -f supabase/sql/070_role_case_fix.sql
 ```
 
 Notes
@@ -28,4 +30,3 @@ Notes
 - Policies rely on `profiles.role` values 'TELECALLER'|'MANAGER'|'ADMIN'. The app normalizes role
   casing and common synonyms, but DB values should be canonical.
 - Server env `SUPABASE_SERVICE_ROLE_KEY` is required for bootstrapping routes like `/admin/elevate`.
-
