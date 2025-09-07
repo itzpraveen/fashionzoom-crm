@@ -1,9 +1,15 @@
 "use server"
 import { z } from 'zod'
-import { createServerSupabase } from '@/lib/supabase/server'
+import { createServerSupabaseFromCookieValues } from '@/lib/supabase/server'
+import { cookies } from 'next/headers'
 import { simpleLeadScore } from '@/lib/phone'
 
 import { rateLimit } from '@/lib/utils/rate-limit'
+
+function getSupabase() {
+  const cookieValues = Object.fromEntries(cookies().getAll().map(c => [c.name, c.value] as const))
+  return createServerSupabaseFromCookieValues(cookieValues)
+}
 
 export const saveDisposition = async (input: {
   leadId: string
@@ -20,7 +26,7 @@ export const saveDisposition = async (input: {
     priority: z.enum(['LOW','MEDIUM','HIGH'])
   })
   const data = schema.parse(input)
-  const supabase = createServerSupabase()
+  const supabase = getSupabase()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
   await rateLimit({ key: `user:${user.id}:saveDisposition`, limit: 20, windowMs: 5000 })
@@ -60,7 +66,7 @@ export const createFollowup = async (input: { leadId: string; dueAt: string; pri
     remark: z.string().optional()
   })
   const data = schema.parse(input)
-  const supabase = createServerSupabase()
+  const supabase = getSupabase()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
   await rateLimit({ key: `user:${user.id}:createFollowup`, limit: 20, windowMs: 5000 })
@@ -70,7 +76,7 @@ export const createFollowup = async (input: { leadId: string; dueAt: string; pri
 export const updateLead = async (input: { id: string; patch: Record<string, unknown> }) => {
   const schema = z.object({ id: z.string().uuid(), patch: z.record(z.unknown()) })
   const { id, patch } = schema.parse(input)
-  const supabase = createServerSupabase()
+  const supabase = getSupabase()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
   await rateLimit({ key: `user:${user.id}:updateLead`, limit: 40, windowMs: 5000 })
@@ -102,7 +108,7 @@ export const importLeads = async (rows: Array<{ full_name: string; primary_phone
     source: z.string().optional()
   })
   const data = z.array(rowSchema).parse(rows)
-  const supabase = createServerSupabase()
+  const supabase = getSupabase()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
   await rateLimit({ key: `user:${user.id}:importLeads`, limit: 200, windowMs: 10000 })
@@ -165,7 +171,7 @@ export const createLead = async (input: {
   })
   try {
     const data = schema.parse(input)
-    const supabase = createServerSupabase()
+    const supabase = getSupabase()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { ok: false, error: 'Unauthorized' }
     await rateLimit({ key: `user:${user.id}:createLead`, limit: 20, windowMs: 5000 })
@@ -279,7 +285,7 @@ export const upsertEnrollment = async (input: { leadId: string; eventId: string;
     notes: z.string().optional()
   })
   const data = schema.parse(input)
-  const supabase = createServerSupabase()
+  const supabase = getSupabase()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
   await rateLimit({ key: `user:${user.id}:upsertEnrollment`, limit: 40, windowMs: 5000 })
