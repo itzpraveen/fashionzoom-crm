@@ -1,5 +1,4 @@
 "use server"
-import { unstable_cache, revalidateTag } from 'next/cache'
 import { createDemoSupabase } from '@/lib/supabase/demo'
 import { createClient } from '@supabase/supabase-js'
 
@@ -12,8 +11,8 @@ function getPublicClient() {
   ) as any
 }
 
-// Cached, non-user-specific metadata. Safe to share across users.
-export const listEvents = unstable_cache(async () => {
+// Simple server helpers (no unstable_cache) to avoid recursion/stack-depth issues
+export async function listEvents() {
   const supabase = getPublicClient()
   const { data, error } = await supabase
     .from('events')
@@ -21,9 +20,9 @@ export const listEvents = unstable_cache(async () => {
     .order('created_at', { ascending: false })
   if (error) throw new Error(error.message)
   return data || []
-}, ['meta:events'], { revalidate: 300, tags: ['events'] })
+}
 
-export const listProgramsByEvent = (eventId: string) => unstable_cache(async () => {
+export async function listProgramsByEvent(eventId: string) {
   if (!eventId) return [] as any[]
   const supabase = getPublicClient()
   const { data, error } = await supabase
@@ -33,13 +32,4 @@ export const listProgramsByEvent = (eventId: string) => unstable_cache(async () 
     .order('created_at', { ascending: true })
   if (error) throw new Error(error.message)
   return data || []
-}, ["meta:programs", eventId], { revalidate: 300, tags: ['programs', `programs:${eventId}`] })()
-
-// Helpers to invalidate when events/programs change (called by mutations)
-export async function invalidateEventsCache() {
-  revalidateTag('events')
-}
-export async function invalidateProgramsCache(eventId?: string) {
-  revalidateTag('programs')
-  if (eventId) revalidateTag(`programs:${eventId}`)
 }

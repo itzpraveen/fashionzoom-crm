@@ -58,7 +58,7 @@ export function AddLeadModal({ open, onClose }: Props) {
         className="w-full max-w-xl bg-surface border border-line rounded-lg p-4 shadow-2xl max-h-[85vh] overflow-y-auto"
         onClick={(e)=>e.stopPropagation()}
       >
-        <div className="flex items-center justify-between mb-3 sticky top-0 bg-surface -mx-4 px-4 pt-2 pb-2 z-10 border-b border-white/5">
+        <div className="flex items-center justify-between mb-3 sticky top-0 bg-surface px-1 pt-2 pb-2 z-10 border-b border-white/5">
           <h3 className="text-lg font-semibold">Add Lead</h3>
           <button onClick={onClose} aria-label="Close" className="text-muted">✕</button>
         </div>
@@ -166,7 +166,7 @@ export function AddLeadModal({ open, onClose }: Props) {
           )}
           {error && <p role="alert" aria-live="polite" className="text-danger text-sm">{error}</p>}
           {success && <p className="text-success text-sm">{success}</p>}
-          <div className="flex gap-2 sticky bottom-0 bg-surface -mx-4 px-4 pb-2 pt-2 border-t border-white/5">
+          <div className="flex gap-2 sticky bottom-0 bg-surface px-1 pb-2 pt-2 border-t border-white/5">
             <button disabled={pending} className="btn-primary">Save</button>
             <button type="button" onClick={onClose} className="rounded bg-white/10 px-3 py-2">Cancel</button>
           </div>
