@@ -1,5 +1,6 @@
 import { createServerSupabase } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { unstable_noStore as noStore } from 'next/cache'
 import { DispositionSheet } from '@/components/DispositionSheet'
 import { FollowUpForm } from '@/components/FollowUpForm'
 import { BadgeScore } from '@/components/BadgeScore'
@@ -11,6 +12,7 @@ import { LeadEnrollments } from '@/components/LeadEnrollments'
 export const dynamic = 'force-dynamic'
 
 export default async function LeadDetail({ params }: { params: { id: string } }) {
+  noStore()
   const supabase = createServerSupabase()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')

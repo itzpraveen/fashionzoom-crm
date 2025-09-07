@@ -8,7 +8,7 @@ import { redirect } from 'next/navigation'
 import { LeadsFilters } from '@/components/LeadsFilters'
 import LeadsTable, { LeadRow } from '@/components/LeadsTable'
 import { updateLead } from '@/actions/leads'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, unstable_noStore as noStore } from 'next/cache'
 import Link from 'next/link'
 import StickyHeader from '@/components/StickyHeader'
 
@@ -21,6 +21,8 @@ export default async function LeadsPage({
 }: {
   searchParams: { page?: string; status?: string; search?: string; due?: string; event_id?: string; program_id?: string }
 }) {
+  // Ensure this route never gets cached; avoids cookies() inside cached scope
+  noStore()
   const supabase = createServerSupabase()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
