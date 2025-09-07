@@ -39,7 +39,7 @@ export default function DashboardTabs() {
   return (
     <div className="flex items-center justify-between">
       <nav
-        className="inline-flex gap-1 rounded-lg bg-white/5 p-1 ring-1 ring-inset ring-white/10"
+        className="inline-flex gap-1 rounded-lg bg-white/3 p-1 ring-1 ring-inset ring-white/10 backdrop-blur"
         aria-label="Dashboard tabs"
         role="tablist"
       >
@@ -53,7 +53,7 @@ export default function DashboardTabs() {
               role="tab"
               aria-selected={active}
               className={`px-3 py-1.5 rounded-md flex items-center gap-2 transition-colors ${
-                active ? 'bg-primary/20 text-primary' : 'text-muted hover:bg-white/10 hover:text-fg'
+                active ? 'bg-primary/15 text-primary ring-1 ring-primary/30' : 'text-fg/80 hover:bg-white/10'
               }`}
             >
               <span>{label}</span>
