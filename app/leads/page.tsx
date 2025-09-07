@@ -1,4 +1,5 @@
-import { createServerSupabase } from '@/lib/supabase/server'
+import { createServerSupabaseFromCookieValues } from '@/lib/supabase/server'
+import { cookies } from 'next/headers'
 import { EmptyState } from '@/components/EmptyState'
 import { LeadCard } from '@/components/LeadCard'
 import { Skeleton } from '@/components/Skeleton'
@@ -23,7 +24,10 @@ export default async function LeadsPage({
 }) {
   // Ensure this route never gets cached; avoids cookies() inside cached scope
   noStore()
-  const supabase = createServerSupabase()
+  // Access cookies at the route level and pass only the values
+  // so no dynamic API is held by reference inside cached scopes
+  const cookieValues = Object.fromEntries(cookies().getAll().map(c => [c.name, c.value] as const))
+  const supabase = createServerSupabaseFromCookieValues(cookieValues)
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
   const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single()

@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState, useTransition } from 'react'
+import { useEffect, useRef, useState, useTransition } from 'react'
 import { createLead } from '@/actions/leads'
 import { EventProgramPicker } from './EventProgramPicker'
 
@@ -11,6 +11,8 @@ export function AddLeadModal({ open, onClose }: Props) {
   const [success, setSuccess] = useState<string | null>(null)
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [eventProgram, setEventProgram] = useState<{ event_id?: string; program_id?: string }>({})
+  const contentRef = useRef<HTMLDivElement | null>(null)
+  const nameInputRef = useRef<HTMLInputElement | null>(null)
 
   const [form, setForm] = useState({
     full_name: '',
@@ -33,14 +35,31 @@ export function AddLeadModal({ open, onClose }: Props) {
     const prevOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     window.addEventListener('keydown', onKey)
+    // Ensure the modal starts at the top for smaller viewports
+    // and when opened via deep-link/hash navigation
+    // Make sure the sheet starts at top and focus doesn't auto-scroll it away
+    // Run two frames to outrun any browser autofocus/layout adjustments
+    requestAnimationFrame(() => {
+      if (contentRef.current) contentRef.current.scrollTop = 0
+      nameInputRef.current?.focus({ preventScroll: true })
+      requestAnimationFrame(() => { if (contentRef.current) contentRef.current.scrollTop = 0 })
+    })
     return () => { document.body.style.overflow = prevOverflow; window.removeEventListener('keydown', onKey) }
   }, [open, onClose])
 
   if (!open) return null
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur flex items-end sm:items-center justify-center p-3" onClick={onClose}>
-      <div role="dialog" aria-modal="true" aria-label="Add Lead" className="w-full max-w-xl bg-surface border border-line rounded-lg p-4 shadow-2xl" onClick={(e)=>e.stopPropagation()}>
-        <div className="flex items-center justify-between mb-3">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Add Lead"
+        id="add-lead"
+        ref={contentRef}
+        className="w-full max-w-xl bg-surface border border-line rounded-lg p-4 shadow-2xl max-h-[85vh] overflow-y-auto"
+        onClick={(e)=>e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-3 sticky top-0 bg-surface -mx-4 px-4 pt-2 pb-2 z-10 border-b border-white/5">
           <h3 className="text-lg font-semibold">Add Lead</h3>
           <button onClick={onClose} aria-label="Close" className="text-muted">✕</button>
         </div>
@@ -80,11 +99,11 @@ export function AddLeadModal({ open, onClose }: Props) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <div>
               <label className="block text-sm">Name</label>
-              <input className="form-input" value={form.full_name} onChange={e=>setForm(f=>({...f, full_name: e.target.value}))} />
+              <input ref={nameInputRef} className="form-input" value={form.full_name} onChange={e=>setForm(f=>({...f, full_name: e.target.value}))} />
             </div>
             <div>
               <label className="block text-sm">Phone*</label>
-              <input required inputMode="tel" autoFocus className="form-input" value={form.primary_phone} onChange={e=>setForm(f=>({...f, primary_phone: e.target.value}))} />
+              <input required inputMode="tel" className="form-input" value={form.primary_phone} onChange={e=>setForm(f=>({...f, primary_phone: e.target.value}))} />
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -148,7 +167,7 @@ export function AddLeadModal({ open, onClose }: Props) {
           )}
           {error && <p role="alert" aria-live="polite" className="text-danger text-sm">{error}</p>}
           {success && <p className="text-success text-sm">{success}</p>}
-          <div className="flex gap-2">
+          <div className="flex gap-2 sticky bottom-0 bg-surface -mx-4 px-4 pb-2 pt-2 border-t border-white/5">
             <button disabled={pending} className="btn-primary">Save</button>
             <button type="button" onClick={onClose} className="rounded bg-white/10 px-3 py-2">Cancel</button>
           </div>
