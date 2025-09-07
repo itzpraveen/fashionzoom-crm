@@ -14,6 +14,16 @@ async function assertAdmin() {
   return { supabase, user }
 }
 
+async function assertManagerOrAdmin() {
+  const supabase = createServerSupabase()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  const role = normalizeRole(profile?.role)
+  if (role !== 'ADMIN' && role !== 'MANAGER') throw new Error('Forbidden')
+  return { supabase, user }
+}
+
 export async function createTeam(input: { name: string }) {
   const { supabase } = await assertAdmin()
   const data = z.object({ name: z.string().min(2) }).parse(input)
@@ -172,7 +182,7 @@ export async function makeAdmin(input: { email?: string; userId?: string }) {
 
 // Invite a user by email and assign role/team. Sends an invite email via Supabase Auth.
 export async function inviteUser(input: { email: string; teamId?: string; role?: 'TELECALLER'|'MANAGER'|'ADMIN'; redirectTo?: string }) {
-  await assertAdmin()
+  await assertManagerOrAdmin()
   const { email, teamId, role, redirectTo } = z.object({
     email: z.string().email(),
     teamId: z.string().uuid().optional(),
@@ -226,7 +236,7 @@ export async function inviteUser(input: { email: string; teamId?: string; role?:
 
 // Resend invite or send magic link to an existing user
 export async function resendInvite(input: { email?: string; userId?: string; redirectTo?: string }) {
-  await assertAdmin()
+  await assertManagerOrAdmin()
   const { email, userId, redirectTo } = z.object({
     email: z.string().email().optional(),
     userId: z.string().uuid().optional(),
@@ -258,6 +268,33 @@ export async function resendInvite(input: { email?: string; userId?: string; red
 
   const { error } = await admin.auth.admin.inviteUserByEmail(targetEmail, { redirectTo: cb })
   if (error) throw error
+  return { ok: true }
+}
+
+// Revoke a pending invite (deletes the auth user if never signed in)
+export async function revokeInvite(input: { email?: string; userId?: string }) {
+  await assertManagerOrAdmin()
+  const { email, userId } = z.object({ email: z.string().email().optional(), userId: z.string().uuid().optional() }).parse(input)
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!serviceKey) throw new Error('Service key missing')
+  const admin = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } })
+  let uid = userId ?? null
+  if (!uid && email) {
+    // list users and find by email (API doesn't have direct get-by-email)
+    const { data, error } = await (admin as any).auth.admin.listUsers()
+    if (error) throw error
+    const users = (data?.users || []) as any[]
+    const u = users.find(x => String(x?.email).toLowerCase() === email.toLowerCase())
+    uid = u?.id || null
+    if (!uid) throw new Error('Invite not found')
+    if (u?.last_sign_in_at) throw new Error('User has already signed in')
+  }
+  if (!uid) throw new Error('Invite not found')
+  const { error: delErr } = await (admin as any).auth.admin.deleteUser(uid)
+  if (delErr) throw delErr
+  // Clean up profile if any
+  await admin.from('profiles').delete().eq('id', uid)
   return { ok: true }
 }
 

@@ -4,6 +4,9 @@ import { createTeam, assignUserToTeam, inviteUser, resendInvite, removeUserFromT
 import SubmitButton from '@/components/SubmitButton'
 import ConfirmSubmit from '@/components/ConfirmSubmit'
 import { normalizeRole } from '@/lib/utils/role'
+import { getAdminClient } from '@/lib/supabase/admin'
+import MembersTable from '@/components/MembersTable'
+import { revokeInvite } from '@/actions/teams'
 // Read env directly to avoid hard-failing in demo mode
 import { bootstrapProfile } from '@/actions/auth'
 
@@ -63,6 +66,20 @@ export default async function TeamsSettingsPage() {
 
   const { data: teams } = await supabase.from('teams').select('*').order('created_at', { ascending: true })
   const { data: members } = await supabase.from('profiles').select('id, full_name, role, team_id').order('full_name', { ascending: true })
+  // Pending invites via admin API (safe on server; not exposed to client)
+  let pendingInvites: Array<{ id: string; email: string; created_at?: string }> = []
+  if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    try {
+      const admin = getAdminClient() as any
+      const res = await admin.auth.admin.listUsers()
+      const users: any[] = res?.data?.users || []
+      pendingInvites = users
+        .filter(u => !u.last_sign_in_at)
+        .sort((a,b)=> new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 10)
+        .map(u => ({ id: u.id, email: String(u.email), created_at: u.created_at }))
+    } catch {}
+  }
 
   async function createTeamAction(formData: FormData) {
     'use server'
@@ -197,81 +214,42 @@ export default async function TeamsSettingsPage() {
 
       <section className="space-y-2">
         <h2 className="font-medium">Members</h2>
-        {/* Desktop table */}
-        <div className="overflow-x-auto hidden sm:block card p-3 md:p-4">
-          <table className="min-w-full text-sm">
-            <thead>
-              <tr className="text-left text-muted">
-                <th className="py-2 pr-4">Name</th>
-                <th className="py-2 pr-4">Role</th>
-                <th className="py-2 pr-4">Team</th>
-                <th className="py-2 pr-4">User ID</th>
-                <th className="py-2 pr-4">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(members||[]).map((m: any) => (
-                <tr key={m.id} className="border-t border-white/10">
-                  <td className="py-2 pr-4">{m.full_name || '—'}</td>
-                  <td className="py-2 pr-4">{m.role}</td>
-                  <td className="py-2 pr-4">{(teams||[]).find((t: any)=>t.id===m.team_id)?.name || '—'}</td>
-                  <td className="py-2 pr-4 font-mono text-xs">{m.id}</td>
-                  <td className="py-2 pr-4">
-                    <div className="flex flex-wrap gap-2">
-                      <form action={resendAction}>
-                        <input type="hidden" name="userId" value={m.id} />
-                        <button className="px-2 py-1 rounded bg-white/10 text-xs">Resend invite</button>
-                      </form>
-                      <form action={removeTeamAction}>
-                        <input type="hidden" name="userId" value={m.id} />
-                        <button className="px-2 py-1 rounded bg-white/10 text-xs">Remove from team</button>
-                      </form>
-                      <form action={setRoleAction} className="flex items-center gap-2">
-                        <input type="hidden" name="userId" value={m.id} />
-                        <select name="role" defaultValue={m.role} className="form-input text-xs">
-                          {['TELECALLER','MANAGER','ADMIN'].map(r => (<option key={r} value={r}>{r}</option>))}
-                        </select>
-                        <SubmitButton pendingLabel="Saving…" className="px-2 py-1 rounded bg-white/10 text-xs">Update role</SubmitButton>
-                      </form>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        {/* Mobile cards */}
-        <div className="sm:hidden space-y-2">
-          {(members||[]).map((m: any) => (
-            <div key={m.id} className="card p-3 border border-line rounded">
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <div className="font-medium">{m.full_name || '—'}</div>
-                  <div className="text-xs text-muted">{m.role} • {(teams||[]).find((t:any)=>t.id===m.team_id)?.name || '—'}</div>
-                  <div className="text-[11px] text-muted font-mono mt-1 break-all">{m.id}</div>
-                </div>
-              </div>
-              <div className="mt-2 flex flex-wrap gap-2">
-                <form action={resendAction}>
-                  <input type="hidden" name="userId" value={m.id} />
-                  <button className="touch-target px-3 py-2 rounded bg-white/10 text-xs">Resend invite</button>
-                </form>
-                <form action={removeTeamAction}>
-                  <input type="hidden" name="userId" value={m.id} />
-                  <button className="touch-target px-3 py-2 rounded bg-white/10 text-xs">Remove</button>
-                </form>
-                <form action={setRoleAction} className="flex items-center gap-2">
-                  <input type="hidden" name="userId" value={m.id} />
-                  <select name="role" defaultValue={m.role} className="form-input text-xs">
-                    {['TELECALLER','MANAGER','ADMIN'].map(r => (<option key={r} value={r}>{r}</option>))}
-                  </select>
-                  <SubmitButton pendingLabel="Saving…" className="touch-target px-3 py-2 rounded bg-white/10 text-xs">Update</SubmitButton>
-                </form>
-              </div>
-            </div>
-          ))}
-        </div>
+        <MembersTable
+          members={members || []}
+          teams={teams || []}
+          resendAction={resendAction}
+          removeTeamAction={removeTeamAction}
+          demoteAction={setRoleAction}
+        />
       </section>
+
+      {pendingInvites.length > 0 && (
+        <section className="space-y-2">
+          <h2 className="font-medium">Pending Invites</h2>
+          <div className="card p-3 md:p-4">
+            <ul className="divide-y divide-white/10">
+              {pendingInvites.map(u => (
+                <li key={u.id} className="py-2 flex items-center justify-between gap-2 text-sm">
+                  <div>
+                    <div className="font-medium">{u.email}</div>
+                    <div className="text-xs text-muted">Sent {u.created_at ? new Date(u.created_at).toLocaleString() : '—'}. You can assign them to a team later using “Assign User”.</div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <form action={resendAction}>
+                      <input type="hidden" name="userId" value={u.id} />
+                      <button className="px-2 py-1 rounded bg-white/10 text-xs">Resend</button>
+                    </form>
+                    <form action={async (fd: FormData) => { 'use server'; await revokeInvite({ userId: String(fd.get('userId')||'') }) }}>
+                      <input type="hidden" name="userId" value={u.id} />
+                      <button className="px-2 py-1 rounded bg-danger/80 text-white text-xs">Revoke</button>
+                    </form>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
 
       <section className="space-y-2">
         <h2 className="font-medium">Teams</h2>
