@@ -1,18 +1,30 @@
 import { NextResponse } from 'next/server'
 import { cookies, headers } from 'next/headers'
 import { createServerSupabase } from '@/lib/supabase/server'
+import { cachedQuery } from '@/lib/cache/query-cache'
 
 export const dynamic = 'force-dynamic'
 
-export async function GET(req: Request) {
+export async function GET(_req: Request) {
   const hdrs = headers()
   const supabase = createServerSupabase()
-  const [{ data: userRes }] = await Promise.all([
-    supabase.auth.getUser(),
-  ])
-  const { data: profile } = userRes?.user
-    ? await supabase.from('profiles').select('id, role, team_id, full_name, updated_at').eq('id', userRes.user.id).maybeSingle()
-    : { data: null }
+  const { data: userRes } = await supabase.auth.getUser()
+
+  // Cache profile lookup briefly per user to avoid repeated DB hits on nav
+  const profile = userRes?.user
+    ? await cachedQuery(
+        `auth-status:${userRes.user.id}`,
+        async () => {
+          const { data } = await supabase
+            .from('profiles')
+            .select('id, role, team_id, full_name, updated_at')
+            .eq('id', userRes.user!.id)
+            .maybeSingle()
+          return data
+        },
+        10000
+      )
+    : null
 
   const cookieList = cookies().getAll().map(c => ({ name: c.name, len: (c.value || '').length }))
   const out = {
@@ -28,4 +40,3 @@ export async function GET(req: Request) {
   }
   return NextResponse.json(out, { status: 200 })
 }
-

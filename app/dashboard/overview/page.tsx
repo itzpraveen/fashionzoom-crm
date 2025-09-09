@@ -3,6 +3,7 @@ import { createServerSupabase } from '@/lib/supabase/server'
 import { cachedQuery } from '@/lib/cache/query-cache'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { getDashboardMetrics } from '@/lib/services/dashboard.service'
 
 export default async function DashboardOverviewPage({ searchParams }: { searchParams?: { scope?: 'me'|'all' } }) {
   const supabase = createServerSupabase()
@@ -55,9 +56,16 @@ export default async function DashboardOverviewPage({ searchParams }: { searchPa
     10000
   )
 
+  // Server-render the top tiles to avoid client waterfalls; update live on client
+  const metrics = await cachedQuery(
+    'dash:metrics',
+    () => getDashboardMetrics(),
+    10000
+  )
+
   return (
     <div className="space-y-4">
-      <DashboardTiles />
+      <DashboardTiles initial={metrics} />
 
       <div className="flex items-center justify-end">
         {elevated && (

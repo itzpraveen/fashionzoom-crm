@@ -10,11 +10,19 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   const supabase = createServerSupabase()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+  // Small server-side badge prefetch to avoid client waterfall
+  const now = new Date().toISOString()
+  const { count: overdueCount } = await supabase
+    .from('followups')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+    .eq('status', 'PENDING')
+    .lt('due_at', now)
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-semibold">Dashboard</h1>
       <StickyHeader className="sticky top-0 z-20 -mx-4 px-4 py-2 bg-gradient-to-b from-white/40 to-transparent dark:from-black/20 backdrop-blur supports-[backdrop-filter]:bg-transparent">
-        <DashboardTabs />
+        <DashboardTabs initialQueueCount={overdueCount || 0} />
       </StickyHeader>
       <div className="pt-3">{children}</div>
     </div>

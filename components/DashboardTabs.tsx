@@ -7,11 +7,11 @@ import { createBrowserClient } from '@/lib/supabase/client'
 
 type Tab = { href: string; label: string; badge?: number | null }
 
-export default function DashboardTabs() {
+export default function DashboardTabs({ initialQueueCount }: { initialQueueCount?: number }) {
   const pathname = usePathname()
   const [tabs, setTabs] = useState<Tab[]>([
     { href: '/dashboard/overview', label: 'Overview', badge: null },
-    { href: '/dashboard/queue', label: 'My Queue', badge: null },
+    { href: '/dashboard/queue', label: 'My Queue', badge: typeof initialQueueCount === 'number' ? initialQueueCount : null },
     { href: '/dashboard/performance', label: 'Performance', badge: null },
   ])
 
@@ -32,9 +32,10 @@ export default function DashboardTabs() {
       if (!mounted) return
       setTabs((t) => t.map(x => x.href === '/dashboard/queue' ? { ...x, badge: count ?? 0 } : x))
     }
-    load()
+    // If server provided initial badge value, avoid duplicating the fetch on mount
+    if (typeof initialQueueCount !== 'number') load()
     return () => { mounted = false }
-  }, [])
+  }, [initialQueueCount])
 
   return (
     <div className="flex items-center justify-between">

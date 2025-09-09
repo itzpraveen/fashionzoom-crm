@@ -3,15 +3,24 @@ import { useEffect, useMemo, useState, useRef } from 'react'
 import { createBrowserClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import { Phone, TrendingUp, Bell, UserPlus } from 'lucide-react'
+import type { DashboardMetrics } from '@/lib/services/dashboard.service'
 
 type Tile = { label: string; value: number }
 
 /**
  * Dashboard metrics display with real-time updates and improved visuals
  */
-export function DashboardTiles() {
+export function DashboardTiles({ initial }: { initial?: DashboardMetrics }) {
   const supabase = useMemo(() => createBrowserClient(), [])
-  const [tiles, setTiles] = useState<Tile[] | null>(null)
+  const [tiles, setTiles] = useState<Tile[] | null>(() => {
+    if (!initial) return null
+    return [
+      { label: "Today's Calls", value: initial.totalCalls },
+      { label: 'Contact Rate', value: initial.contactRate },
+      { label: 'Overdue Follow-ups', value: initial.overdue },
+      { label: 'Leads Created', value: initial.leadsCreated },
+    ]
+  })
 
   useEffect(() => {
     let mounted = true
@@ -34,7 +43,8 @@ export function DashboardTiles() {
         { label: 'Leads Created', value: created.count || 0 }
       ])
     }
-    load()
+    // If server provided initial values, skip the immediate fetch and rely on realtime + user interactions
+    if (!initial) load()
 
     // Debounce realtime updates to avoid rapid re-renders
     const timer = { ref: null as any }
@@ -53,7 +63,7 @@ export function DashboardTiles() {
       supabase.removeChannel(ch)
       if (timer.ref) clearTimeout(timer.ref)
     }
-  }, [supabase])
+  }, [supabase, initial])
 
   const TileIcon = ({ label }: { label: string }) => {
     const base = 'w-5 h-5'
