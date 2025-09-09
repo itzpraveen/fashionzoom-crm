@@ -1,5 +1,6 @@
 "use client"
 import React from 'react'
+import { createBrowserClient } from '@/lib/supabase/client'
 
 export type AuthUser = { id: string; email?: string | null } | null
 export type Profile = { id: string; role?: string | null; team_id?: string | null; full_name?: string | null; updated_at?: string | null } | null
@@ -62,7 +63,38 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     else setLoading(false)
   }, [refresh])
 
+  // Subscribe to Supabase auth events for instant updates
+  React.useEffect(() => {
+    const supabase = createBrowserClient()
+    let mounted = true
+    // Seed from current user quickly (no network)
+    supabase.auth.getUser().then((res: any) => {
+      if (!mounted) return
+      const current = res?.data?.user ? { id: res.data.user.id, email: res.data.user.email } : null
+      // If storage hydration missed or differs, refresh profile
+      if ((current?.id || null) !== (user?.id || null)) {
+        setUser(current)
+        // Profile likely changed with user — fetch fresh
+        refresh()
+      }
+    }).catch(() => {})
+
+    const { data: sub } = supabase.auth.onAuthStateChange((_evt: any, session: any) => {
+      if (!mounted) return
+      const next = session?.user ? { id: session.user.id, email: session.user.email } : null
+      setUser(next)
+      if (next) {
+        // Signed in or token refreshed — refetch profile
+        refresh()
+      } else {
+        // Signed out — clear profile and storage
+        setProfile(null)
+        try { localStorage.removeItem('fzcrm-auth-status') } catch {}
+      }
+    })
+    return () => { mounted = false; sub?.subscription?.unsubscribe?.() }
+  }, [refresh])
+
   const value = React.useMemo<UserState>(() => ({ user, profile, loading, refresh }), [user, profile, loading, refresh])
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }
-
