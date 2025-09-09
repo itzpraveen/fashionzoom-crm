@@ -38,5 +38,10 @@ export async function GET(_req: Request) {
       pwa: process.env.NEXT_PUBLIC_ENABLE_PWA || '0',
     }
   }
-  return NextResponse.json(out, { status: 200 })
+  return NextResponse.json(out, {
+    status: 200,
+    headers: {
+      'Cache-Control': 'private, max-age=10, stale-while-revalidate=30'
+    }
+  })
 }

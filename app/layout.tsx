@@ -5,6 +5,7 @@ import SWUnregister from './sw-unregister'
 import SWRegister from './sw-register'
 import FooterNav from '@/components/FooterNav'
 import TopNav from '@/components/TopNav'
+import { UserProvider } from '@/lib/auth/user-context'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import AuthNav from '@/components/AuthNav'
 import MobileFab from '@/components/MobileFab'
@@ -51,19 +52,21 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             <link rel="preconnect" href={supabaseUrl} crossOrigin="anonymous" />
           </>
         ) : null}
-        <header className="sticky top-0 z-30 border-b border-white/10 bg-gradient-to-b from-black/5 to-transparent md:backdrop-blur pt-[env(safe-area-inset-top)]">
-          <TopNav />
-        </header>
-        <main id="content" role="main" className="mx-auto max-w-6xl px-4 py-4 pb-20 sm:pb-6">
-          {children}
-        </main>
-        <CommandPalette />
-        {/* Register SW if enabled; otherwise actively unregister */}
-        {enablePWA ? <SWRegister /> : <SWUnregister />}
-        {/* Bottom navigation for mobile */}
-        <FooterNav />
-        {/* Center floating action for quick add on mobile */}
-        <MobileFab />
+        <UserProvider>
+          <header className="sticky top-0 z-30 border-b border-white/10 bg-gradient-to-b from-black/5 to-transparent md:backdrop-blur pt-[env(safe-area-inset-top)]">
+            <TopNav />
+          </header>
+          <main id="content" role="main" className="mx-auto max-w-6xl px-4 py-4 pb-20 sm:pb-6">
+            {children}
+          </main>
+          <CommandPalette />
+          {/* Register SW if enabled; otherwise actively unregister */}
+          {enablePWA ? <SWRegister /> : <SWUnregister />}
+          {/* Bottom navigation for mobile */}
+          <FooterNav />
+          {/* Center floating action for quick add on mobile */}
+          <MobileFab />
+        </UserProvider>
       </body>
     </html>
   )

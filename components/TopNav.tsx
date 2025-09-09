@@ -1,14 +1,14 @@
 "use client"
 import Link from 'next/link'
 import Image from 'next/image'
-import { usePathname, useRouter } from 'next/navigation'
-import { useEffect, useRef, useState } from 'react'
+import { usePathname } from 'next/navigation'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { LayoutDashboard, Users, CalendarClock, FileText, Upload, ListChecks, LogOut, Settings as SettingsIcon, Menu as MenuIcon, Search as SearchIcon, UserPlus } from 'lucide-react'
-import { createBrowserClient } from '@/lib/supabase/client'
 import { normalizeRole } from '@/lib/utils/role'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import NotificationsBell from '@/components/NotificationsBell'
 import AuthNav from '@/components/AuthNav'
+import { useUser } from '@/lib/auth/user-context'
 
 const mainItems: { href: string; label: string }[] = [
   { href: '/dashboard', label: 'Dashboard' },
@@ -18,27 +18,14 @@ const mainItems: { href: string; label: string }[] = [
 
 export default function TopNav() {
   const pathname = usePathname()
-  const router = useRouter()
-  const [loggedIn, setLoggedIn] = useState<boolean>(false)
+  const { user, profile } = useUser()
+  const loggedIn = !!user
+  const role = useMemo(() => profile?.role ? normalizeRole(profile.role) : null, [profile])
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [role, setRole] = useState<'TELECALLER'|'MANAGER'|'ADMIN'|null>(null)
   const settingsRef = useRef<HTMLDetailsElement | null>(null)
   const mobileRef = useRef<HTMLDetailsElement | null>(null)
   const isAuthRoute = pathname?.startsWith('/login') || pathname?.startsWith('/auth/')
-  useEffect(() => {
-    const supabase = createBrowserClient()
-    supabase.auth.getUser().then((res: any) => setLoggedIn(!!res?.data?.user))
-    const { data } = supabase.auth.onAuthStateChange((_evt: any, session: any) => setLoggedIn(!!session?.user))
-    return () => { data.subscription.unsubscribe() }
-  }, [])
-  useEffect(() => {
-    if (!loggedIn) { setRole(null); return }
-    fetch('/api/auth-status', { cache: 'no-store' })
-      .then(r => r.json())
-      .then((j) => setRole(j?.profile?.role ? normalizeRole(j.profile.role) : null))
-      .catch(()=> setRole(null))
-  }, [loggedIn])
   // Close menus on route change
   useEffect(() => { setSettingsOpen(false); setMobileOpen(false) }, [pathname])
   // Click-away + Esc to close menus
