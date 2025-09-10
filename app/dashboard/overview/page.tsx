@@ -28,7 +28,7 @@ export default async function DashboardOverviewPage({ searchParams }: { searchPa
         .eq('status', 'PENDING')
       const recentLeadsQ = supabase
         .from('leads')
-        .select('id, full_name, city, source, created_at, primary_phone, status, score, next_follow_up_at, last_activity_at')
+        .select('id, full_name, city, source, created_at')
         .gte('created_at', today.toISOString())
         .order('created_at', { ascending: false })
         .limit(5)
