@@ -16,7 +16,7 @@ export default async function MyQueuePage({ searchParams }: { searchParams?: { d
 
   const { data: leads, error } = await supabase
     .from('leads')
-    .select('*')
+    .select('id, full_name, city, source, next_follow_up_at, last_activity_at, primary_phone, status')
     .eq('owner_id', user.id)
     .eq('is_deleted', false)
     .order('next_follow_up_at', { ascending: true, nullsFirst: false })
