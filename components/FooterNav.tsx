@@ -6,7 +6,7 @@ import { createBrowserClient } from '@/lib/supabase/client'
 import { LayoutDashboard, Users, CalendarClock, Upload, Settings } from 'lucide-react'
 
 const tabs = [
-  { href: '/dashboard', label: 'Dashboard', Icon: LayoutDashboard },
+  { href: '/dashboard/overview', label: 'Dashboard', Icon: LayoutDashboard },
   { href: '/leads', label: 'Leads', Icon: Users },
   { href: '/followups', label: 'Follow-ups', Icon: CalendarClock },
   { href: '/import', label: 'Import', Icon: Upload },

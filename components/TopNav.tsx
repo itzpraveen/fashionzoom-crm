@@ -11,7 +11,7 @@ import AuthNav from '@/components/AuthNav'
 import { useUser } from '@/lib/auth/user-context'
 
 const mainItems: { href: string; label: string }[] = [
-  { href: '/dashboard', label: 'Dashboard' },
+  { href: '/dashboard/overview', label: 'Dashboard' },
   { href: '/leads', label: 'Leads' },
   { href: '/followups', label: 'Follow-ups' },
 ]
@@ -43,7 +43,7 @@ export default function TopNav() {
   // Search moved to Command Palette (Ctrl/Cmd+K)
   return (
     <nav aria-label="Top" className="mx-auto max-w-6xl px-4 py-2 flex items-center gap-3 text-sm">
-      <Link href="/dashboard" className="font-semibold tracking-tight flex items-center gap-2" aria-label="Go to dashboard">
+      <Link href="/dashboard/overview" className="font-semibold tracking-tight flex items-center gap-2" aria-label="Go to dashboard">
         <span className="inline-flex items-center h-6">
           <Image src="/brand/logo-light.png" alt="FashionZoom CRM" width={120} height={24} className="h-6 w-auto dark:hidden" priority={false} />
           <Image src="/brand/logo-dark.png" alt="FashionZoom CRM" width={120} height={24} className="h-6 w-auto hidden dark:inline" priority={false} />
@@ -126,7 +126,7 @@ export default function TopNav() {
             <nav className="flex flex-col text-base" aria-label="Mobile navigation">
               {loggedIn && (
                 <>
-                  <Link className="flex items-center gap-2 px-3 py-2 rounded hover:bg-white/10" href="/dashboard" prefetch={false}>
+                  <Link className="flex items-center gap-2 px-3 py-2 rounded hover:bg-white/10" href="/dashboard/overview" prefetch={false}>
                     <LayoutDashboard size={16} /> Dashboard
                   </Link>
                   <Link className="flex items-center gap-2 px-3 py-2 rounded hover:bg-white/10" href="/leads" prefetch={false}>

@@ -13,6 +13,6 @@ export default async function Page() {
   // If no profile row exists (e.g., bootstrap failed), skip onboarding and go to leads
   if (!profile) redirect('/leads')
   // Default landing after login
-  redirect('/dashboard')
+  redirect('/dashboard/overview')
 }
 export const dynamic = 'force-dynamic'
