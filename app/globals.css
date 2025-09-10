@@ -14,6 +14,23 @@
   .btn-primary:hover { filter: brightness(0.98); }
   .btn-primary:active { filter: brightness(0.94); transform: translateY(1px); }
   .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+  .btn-secondary {
+    @apply rounded-md px-3 py-2 shadow-sm; 
+    background-color: color-mix(in oklab, var(--surface) 90%, transparent);
+    border: 1px solid var(--border);
+    color: var(--fg);
+  }
+  .btn-secondary:hover { filter: brightness(0.98); }
+  .btn-secondary:active { filter: brightness(0.96); transform: translateY(1px); }
+  .btn-secondary:disabled { opacity: 0.6; cursor: not-allowed; }
+  .btn-ghost {
+    @apply rounded-md px-3 py-2; 
+    background-color: transparent;
+    color: var(--fg);
+  }
+  .btn-ghost:hover { background-color: color-mix(in oklab, var(--fg) 8%, transparent); }
+  .btn-ghost:active { background-color: color-mix(in oklab, var(--fg) 12%, transparent); transform: translateY(1px); }
+  .btn-ghost:disabled { opacity: 0.6; cursor: not-allowed; }
   .form-input {
     @apply w-full rounded-md bg-surface-2 border border-line text-sm focus:outline-none;
     padding: 0.625rem 0.75rem; /* base: a bit larger for mobile */

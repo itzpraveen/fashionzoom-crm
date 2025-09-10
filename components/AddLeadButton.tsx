@@ -12,7 +12,7 @@ export function AddLeadButton() {
   }, [])
   return (
     <>
-      <button onClick={() => { setOpen(true); history.replaceState(null, '', '#add-lead') }} className="rounded bg-primary text-white px-3 py-2 text-sm">Add Lead</button>
+      <button onClick={() => { setOpen(true); history.replaceState(null, '', '#add-lead') }} className="btn-primary text-sm">Add Lead</button>
       <AddLeadModal open={open} onClose={() => { setOpen(false); history.replaceState(null, '', '#') }} />
     </>
   )

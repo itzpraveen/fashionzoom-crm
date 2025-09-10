@@ -2,6 +2,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createBrowserClient } from '@/lib/supabase/client'
 import { waLink } from '@/lib/phone'
+import Modal from './Modal'
+import Field from './Field'
 
 type LeadLite = { id: string; full_name: string | null; primary_phone: string; email?: string | null }
 
@@ -44,43 +46,34 @@ export default function ComposeModal({ lead }: { lead: LeadLite }) {
 
   return (
     <>
-      <button onClick={()=>setOpen(true)} className="rounded bg-white/10 px-3 py-2 text-sm">Compose</button>
+      <button onClick={()=>setOpen(true)} className="btn-secondary text-sm">Compose</button>
       {open && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-3 z-50">
-          <div className="w-full max-w-lg card p-4 space-y-2">
-            <div className="flex items-center justify-between">
-              <h3 className="font-medium">Compose message</h3>
-              <button onClick={()=>setOpen(false)} className="text-muted">✕</button>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              <div>
-                <label className="block text-xs text-muted">Channel</label>
-                <select className="form-input" value={channel} onChange={(e)=>setChannel(e.target.value as any)}>
-                  <option value="WHATSAPP">WhatsApp</option>
-                  <option value="SMS">SMS</option>
-                  <option value="EMAIL">Email</option>
-                </select>
-              </div>
-              <div className="sm:col-span-2">
-                <label className="block text-xs text-muted">Template</label>
-                <select className="form-input" value={templateId} onChange={(e)=>setTemplateId(e.target.value)}>
-                  <option value="">— Select —</option>
-                  {templates.filter(t => !t.channel || t.channel === channel).map(t => (
-                    <option key={t.id} value={t.id}>{t.name}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-            <div>
-              <label className="block text-xs text-muted">Preview</label>
-              <textarea className="form-input" rows={4} value={preview} onChange={()=>{}} readOnly />
-            </div>
-            <div className="flex gap-2 justify-end pt-2">
-              <button onClick={()=>setOpen(false)} className="px-3 py-2 rounded bg-white/10 text-sm">Cancel</button>
-              <button disabled={!selected} onClick={onSend} className="btn-primary text-sm">Send</button>
-            </div>
+        <Modal open={open} onClose={()=>setOpen(false)} title="Compose message" size="lg">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <Field label="Channel">
+              <select className="form-input" value={channel} onChange={(e)=>setChannel(e.target.value as any)}>
+                <option value="WHATSAPP">WhatsApp</option>
+                <option value="SMS">SMS</option>
+                <option value="EMAIL">Email</option>
+              </select>
+            </Field>
+            <Field label="Template" className="sm:col-span-2">
+              <select className="form-input" value={templateId} onChange={(e)=>setTemplateId(e.target.value)}>
+                <option value="">— Select —</option>
+                {templates.filter(t => !t.channel || t.channel === channel).map(t => (
+                  <option key={t.id} value={t.id}>{t.name}</option>
+                ))}
+              </select>
+            </Field>
           </div>
-        </div>
+          <Field label="Preview">
+            <textarea className="form-input" rows={4} value={preview} onChange={()=>{}} readOnly />
+          </Field>
+          <div className="flex gap-2 justify-end pt-2">
+            <button onClick={()=>setOpen(false)} className="btn-ghost text-sm">Cancel</button>
+            <button disabled={!selected} onClick={onSend} className="btn-primary text-sm">Send</button>
+          </div>
+        </Modal>
       )}
     </>
   )
