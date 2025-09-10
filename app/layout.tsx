@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 // PWA handling is feature-flagged for dev convenience
 import SWUnregister from './sw-unregister'
 import SWRegister from './sw-register'
+import dynamic from 'next/dynamic'
 import FooterNav from '@/components/FooterNav'
 import TopNav from '@/components/TopNav'
 import { UserProvider } from '@/lib/auth/user-context'
@@ -59,13 +60,14 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           <main id="content" role="main" className="mx-auto max-w-6xl px-4 py-4 pb-20 sm:pb-6">
             {children}
           </main>
-          <CommandPalette />
+          {/* Lazy-load heavier client widgets to reduce initial hydration */}
+          {(() => { const CommandPaletteLazy = dynamic(() => import('@/components/CommandPalette'), { ssr: false }); return <CommandPaletteLazy /> })()}
           {/* Register SW if enabled; otherwise actively unregister */}
           {enablePWA ? <SWRegister /> : <SWUnregister />}
           {/* Bottom navigation for mobile */}
           <FooterNav />
-          {/* Center floating action for quick add on mobile */}
-          <MobileFab />
+          {/* Center floating action for quick add on mobile (lazy) */}
+          {(() => { const MobileFabLazy = dynamic(() => import('@/components/MobileFab'), { ssr: false }); return <MobileFabLazy /> })()}
         </UserProvider>
       </body>
     </html>
